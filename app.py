@@ -67,9 +67,9 @@ def backtest(start_date, end_date, index_name, interval, sl_in_pct, target_in_pc
         # if folder_date == 220103:
         #     cash_data.to_csv("cash.csv")
 
-        if folder_date == 220103:
-            new_data_call.to_csv("call.csv")
-            new_data_put.to_csv("put.csv")
+        # if folder_date == 220103:
+        #     new_data_call.to_csv("call.csv")
+        #     new_data_put.to_csv("put.csv")
 
         
         entry_time = entry_time_and_signal_symbol(cash_data, indicators, input_entry_time)
