@@ -1,13 +1,13 @@
 from flask import Flask,request,jsonify
 from pathlib import Path
-from Common.time import hhmm_to_seconds,seconds_to_hhmm
+from Common.time import hhmm_to_seconds
 from Common.load_option_data import load_option_data
 from Common.load_cash_data import load_cash_data
 from Common.indicators import rsi,bullish_n_bearish
 from Common.candle_diff_pct import candle_diff_pct
-from bull_bear import match_atm_options,entry_time_and_signal_symbol,buy_call_and_put,sell_trade,profit_loss,symbol
+from bull_bear import match_atm_options,entry_time_and_signal_symbol,buy_call_and_put,sell_trade,profit_loss,symbol,match_premium_options
 
-def backtest(start_date, end_date, index_name, interval, sl_in_pct, target_in_pct,exit_time,indicators,input_entry_time,quantity):
+def backtest(start_date, end_date, index_name, interval, sl_in_pct, target_in_pct,exit_time,indicators,input_entry_time,quantity,strike_criteria,premium):
     base_path = Path("../data")
     results = []
 
@@ -61,8 +61,15 @@ def backtest(start_date, end_date, index_name, interval, sl_in_pct, target_in_pc
         call_data = load_option_data(call_path, index_upper)
         put_data  = load_option_data(put_path, index_upper)
 
-        new_data_call = match_atm_options(call_data, cash_data, "new_symbol_call")
-        new_data_put = match_atm_options(put_data, cash_data, "new_symbol_put")
+        if strike_criteria == "ATM":
+
+            new_data_call = match_atm_options(call_data, cash_data, "new_symbol_call")
+            new_data_put = match_atm_options(put_data, cash_data, "new_symbol_put")
+        
+        elif strike_criteria == "premium":
+
+            new_data_call = match_premium_options(call_data, cash_data, "new_symbol_call", premium)
+            new_data_put = match_premium_options(call_data, cash_data, "new_symbol_put", premium)
 
         # if folder_date == 220103:
         #     cash_data.to_csv("cash.csv")
@@ -86,9 +93,11 @@ def backtest(start_date, end_date, index_name, interval, sl_in_pct, target_in_pc
 
         if symbol_result is None:
             continue
-
-        buy_call_and_put(cash_data,new_data_put,new_data_call,entry_time,symbol_result,sl_in_pct,target_in_pct)
-
+        
+        if entry_time >= 36000 and entry_time <= 39600:
+            buy_call_and_put(cash_data,new_data_put,new_data_call,entry_time,symbol_result,sl_in_pct,target_in_pct)
+        else:
+            continue
        
         sell_trade(cash_data,new_data_put,new_data_call,symbol_result,entry_time,exit_time_result)
 
@@ -113,7 +122,7 @@ def backtest(start_date, end_date, index_name, interval, sl_in_pct, target_in_pc
 
         if "bullish_n_bearish_engulfing" in indicators:
             result_row["Signal"] = row["pattern"]
-            result_row["candle_diff_pct"] = row["candle_diff_pct"]
+            result_row["Candle_diff_pct"] = row["candle_diff_pct"]
 
         results.append(result_row)
 
@@ -138,8 +147,10 @@ def run_backtest():
     indicators = data.get("indicators")
     input_entry_time = hhmm_to_seconds(data.get("entry_time"))
     quantity = data.get("quantity")
+    strike_criteria = data.get("strike_criteria")
+    premium = data.get("premium")
 
-    result = backtest(start_date, end_date, index, interval, sl_in_pct, target_in_pct, exit_time, indicators, input_entry_time, quantity)
+    result = backtest(start_date, end_date, index, interval, sl_in_pct, target_in_pct, exit_time, indicators, input_entry_time, quantity,strike_criteria,premium)
 
     return jsonify(result)
 

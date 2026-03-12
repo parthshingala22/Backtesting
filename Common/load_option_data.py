@@ -31,10 +31,13 @@ def load_option_data(path,index_name):
     return df
 
 
-# path = "..\\data\\2022\\JAN\\03\\banknifty_call.feather"
-# index_name = "BANKNIFTY"
+
+
+# path = "..\\..\\data\\2022\\JAN\\03\\nifty_call.feather"
+# index_name = "NIFTY"
 
 # data = load_option_data(path,index_name)
-# print(data.head())
+# # print(data.head())
+# # print(data.shape)
 # data.to_csv("call.csv")
 

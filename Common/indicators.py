@@ -23,18 +23,32 @@ def bullish_n_bearish(data):
 
     data["pattern"] = None
 
+    # bullish = (
+    #     (data["candle_color"] == "Red") &
+    #     (data["next_candle_color"] == "Green") &
+    #     (data["close"] >= data["next_candle_open"]) &
+    #     (data["open"] <= data["next_candle_close"])
+    # )
+
+    # bearish = (
+    #     (data["candle_color"] == "Green") &
+    #     (data["next_candle_color"] == "Red") &
+    #     (data["close"] <= data["next_candle_open"]) &
+    #     (data["open"] >= data["next_candle_close"])
+    # )
+
     bullish = (
         (data["candle_color"] == "Red") &
         (data["next_candle_color"] == "Green") &
         (data["close"] >= data["next_candle_open"]) &
-        (data["open"] <= data["next_candle_close"])
+        (data["open"] < data["next_candle_close"])
     )
 
     bearish = (
         (data["candle_color"] == "Green") &
         (data["next_candle_color"] == "Red") &
         (data["close"] <= data["next_candle_open"]) &
-        (data["open"] >= data["next_candle_close"])
+        (data["open"] > data["next_candle_close"])
     )
 
     data.loc[bullish.shift(2, fill_value=False), "pattern"] = "Bullish Engulfing"
