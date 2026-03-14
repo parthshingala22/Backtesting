@@ -1,3 +1,4 @@
+import pandas as pd
 from flask import Flask,request,jsonify
 from pathlib import Path
 from Common.time import hhmm_to_seconds
@@ -37,6 +38,11 @@ def backtest(start_date, end_date, index_name, interval, sl_in_pct, target_in_pc
 
     files.sort(key=lambda x: x[0])
 
+    cash_list = []
+    call_list = []
+    put_list = []
+    # date_list = []
+
     for folder_date, cash_path in files:
 
         if folder_date < start_date or folder_date > end_date:
@@ -51,35 +57,58 @@ def backtest(start_date, end_date, index_name, interval, sl_in_pct, target_in_pc
             continue
 
         cash_data = load_cash_data(cash_path, interval)
-        cash_data = rsi(cash_data)
-        cash_data = bullish_n_bearish(cash_data)
-        cash_data = candle_diff_pct(cash_data)
-
-        # if folder_date == 220103:
-        #     cash_data.to_csv("cash.csv")
-
         call_data = load_option_data(call_path, index_upper)
         put_data  = load_option_data(put_path, index_upper)
 
-        if strike_criteria == "ATM":
+        cash_data["date"] = folder_date
+        call_data["date"] = folder_date
+        put_data["date"] = folder_date
 
-            new_data_call = match_atm_options(call_data, cash_data, "new_symbol_call")
-            new_data_put = match_atm_options(put_data, cash_data, "new_symbol_put")
+        cash_list.append(cash_data)
+        call_list.append(call_data)
+        put_list.append(put_data)
+    
+    cash_data = pd.concat(cash_list, ignore_index=True)
+    call_data = pd.concat(call_list, ignore_index=True)
+    put_data  = pd.concat(put_list, ignore_index=True)
+
+    cash_data = cash_data.sort_values(["date","time"]).reset_index(drop=True)
+    call_data = call_data.sort_values(["date","time"]).reset_index(drop=True)
+    put_data = put_data.sort_values(["date","time"]).reset_index(drop=True)
+
+    # cash_data.to_csv("cash.csv")
+    # call_data.to_csv("call.csv")
+    # put_data.to_csv("put.csv")
+
+    cash_data = rsi(cash_data)
+    cash_data = bullish_n_bearish(cash_data)
+    cash_data = candle_diff_pct(cash_data)
+
+    if strike_criteria == "ATM":
+
+        new_data_call = match_atm_options(call_data, cash_data, "new_symbol_call")
+        new_data_put  = match_atm_options(put_data, cash_data, "new_symbol_put")
+
+    elif strike_criteria == "premium":
+
+        new_data_call = match_premium_options(call_data, cash_data, "new_symbol_call", premium)
+        new_data_put  = match_premium_options(put_data, cash_data, "new_symbol_put", premium)
+
+    # new_data_call.to_csv("new_data_call.csv")
+    # new_data_put.to_csv("new_data_put.csv")
+    
+    for date in cash_data["date"].unique():
+
+        day_cash = cash_data[cash_data["date"] == date].copy()
+        day_call = new_data_call[new_data_call["date"] == date].copy()
+        day_put = new_data_put[new_data_put["date"] == date].copy()
         
-        elif strike_criteria == "premium":
+        # if date == 220104:
+            # day_cash.to_csv("day_cash.csv")
+            # day_call.to_csv("day_call.csv")
+            # day_put.to_csv("day_put.csv")
 
-            new_data_call = match_premium_options(call_data, cash_data, "new_symbol_call", premium)
-            new_data_put = match_premium_options(call_data, cash_data, "new_symbol_put", premium)
-
-        # if folder_date == 220103:
-        #     cash_data.to_csv("cash.csv")
-
-        # if folder_date == 220103:
-        #     new_data_call.to_csv("call.csv")
-        #     new_data_put.to_csv("put.csv")
-
-        
-        entry_time = entry_time_and_signal_symbol(cash_data, indicators, input_entry_time)
+        entry_time = entry_time_and_signal_symbol(day_cash, indicators, input_entry_time)
 
         if entry_time is None:
             continue
@@ -88,46 +117,44 @@ def backtest(start_date, end_date, index_name, interval, sl_in_pct, target_in_pc
 
         if entry_time >= exit_time_result:
             continue
-        
-        symbol_result = symbol(cash_data, entry_time,indicators)
+
+        symbol_result = symbol(day_cash, entry_time, indicators)
 
         if symbol_result is None:
             continue
         
-        if entry_time >= 36000 and entry_time <= 39600:
-            buy_call_and_put(cash_data,new_data_put,new_data_call,entry_time,symbol_result,sl_in_pct,target_in_pct)
-        else:
-            continue
-       
-        sell_trade(cash_data,new_data_put,new_data_call,symbol_result,entry_time,exit_time_result)
+        buy_call_and_put(day_cash, day_put, day_call,
+                        entry_time, symbol_result, sl_in_pct, target_in_pct)
 
-        profit_loss(cash_data,entry_time,quantity)
+        sell_trade(day_cash, day_put, day_call,
+                symbol_result, entry_time, exit_time_result)
 
-        row = cash_data[cash_data["time"] == entry_time].iloc[0]
+        profit_loss(day_cash, entry_time, quantity)
+
+        row = day_cash[day_cash["time"] == entry_time].iloc[0]
 
         result_row = {
-            "Date": folder_date,
-            "Symbol": symbol_result,
-            "Buy_Price": row["buy_price"],
-            "Stop_Loss": row["stop_loss"],
-            "Sell_Price": row["sell_price"],
+            "Date": int(row["date"]),
+            "Symbol": str(symbol_result),
+            "Buy_Price": float(row["buy_price"]),
+            "Stop_Loss": float(row["stop_loss"]),
+            "Sell_Price": float(row["sell_price"]),
             "Entry_Time": row["entry_time"],
             "Exit_Time": row["exit_time"],
-            "Exit_Reason": row["exit_reason"],
-            "Profit_n_Loss": row["profit_n_loss"],
+            "Exit_Reason": str(row["exit_reason"]),
+            "Profit_n_Loss": float(row["profit_n_loss"]),
         }
 
         if "rsi" in indicators:
-            result_row["Rsi_Value"] = row["rsi"]
+            result_row["Rsi_Value"] = float(row["rsi"])
 
         if "bullish_n_bearish_engulfing" in indicators:
-            result_row["Signal"] = row["pattern"]
-            result_row["Candle_diff_pct"] = row["candle_diff_pct"]
+            result_row["Signal"] = str(row["pattern"])
+            result_row["Candle_diff_pct"] = float(row["candle_diff_pct"])
 
         results.append(result_row)
-
+    
     return results
-
 
 
 app = Flask(__name__)

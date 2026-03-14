@@ -40,7 +40,7 @@ def match_premium_options(option_df, cash_df, symbol_col_name, target_premium):
         how="inner"
     )
 
-    merged_df["premium_diff"] = (merged_df["close"] - target_premium).abs()
+    merged_df["premium_diff"] = (merged_df["open"] - target_premium).abs()
 
     idx = merged_df.groupby(["date", "time"])["premium_diff"].idxmin()
 
@@ -56,6 +56,8 @@ def match_premium_options(option_df, cash_df, symbol_col_name, target_premium):
 
     
 def entry_time_and_signal_symbol(cash_data, indicators, input_entry_time):
+    
+    cash_data = cash_data[(cash_data["time"] >= 36000) & (cash_data["time"] <= 39600)]
 
     for _, row in cash_data.iterrows():
 
@@ -98,55 +100,55 @@ def symbol(cash_data, entry,indicators):
     row = cash_data[cash_data["time"] == entry].iloc[0]
     symbol = None
 
-    # if "bullish_n_bearish_engulfing" in indicators and "rsi" in indicators:
-
-    #     if row["pattern"] == "Bullish Engulfing" and row["rsi"] >= 70:
-    #         symbol = row["new_symbol_call"]
-
-    #     elif row["pattern"] == "Bearish Engulfing" and row["rsi"] <= 30:
-    #         symbol = row["new_symbol_put"]
-
-    # elif "bullish_n_bearish_engulfing" in indicators:
-
-    #     if row["pattern"] == "Bullish Engulfing":
-    #         symbol = row["new_symbol_call"]
-    #     elif row["pattern"] == "Bearish Engulfing":
-    #         symbol = row["new_symbol_put"]
-
-    # elif "rsi" in indicators:
-
-    #     if row["rsi"] >= 70:
-    #         symbol = row["new_symbol_call"]
-    #     elif row["rsi"] <= 30:
-    #         symbol = row["new_symbol_put"]
-
-    # elif not indicators:
-    #     symbol = row["new_symbol_call"]
-
     if "bullish_n_bearish_engulfing" in indicators and "rsi" in indicators:
 
         if row["pattern"] == "Bullish Engulfing" and row["rsi"] >= 70:
-            symbol = row["new_symbol_put"]
+            symbol = row["new_symbol_call"]
 
         elif row["pattern"] == "Bearish Engulfing" and row["rsi"] <= 30:
-            symbol = row["new_symbol_call"]
+            symbol = row["new_symbol_put"]
 
     elif "bullish_n_bearish_engulfing" in indicators:
 
         if row["pattern"] == "Bullish Engulfing":
-            symbol = row["new_symbol_put"]
-        elif row["pattern"] == "Bearish Engulfing":
             symbol = row["new_symbol_call"]
+        elif row["pattern"] == "Bearish Engulfing":
+            symbol = row["new_symbol_put"]
 
     elif "rsi" in indicators:
 
         if row["rsi"] >= 70:
-            symbol = row["new_symbol_put"]
-        elif row["rsi"] <= 30:
             symbol = row["new_symbol_call"]
+        elif row["rsi"] <= 30:
+            symbol = row["new_symbol_put"]
 
     elif not indicators:
         symbol = row["new_symbol_call"]
+
+    # if "bullish_n_bearish_engulfing" in indicators and "rsi" in indicators:
+
+    #     if row["pattern"] == "Bullish Engulfing" and row["rsi"] >= 70:
+    #         symbol = row["new_symbol_put"]
+
+    #     elif row["pattern"] == "Bearish Engulfing" and row["rsi"] <= 30:
+    #         symbol = row["new_symbol_call"]
+
+    # elif "bullish_n_bearish_engulfing" in indicators:
+
+    #     if row["pattern"] == "Bullish Engulfing":
+    #         symbol = row["new_symbol_put"]
+    #     elif row["pattern"] == "Bearish Engulfing":
+    #         symbol = row["new_symbol_call"]
+
+    # elif "rsi" in indicators:
+
+    #     if row["rsi"] >= 70:
+    #         symbol = row["new_symbol_put"]
+    #     elif row["rsi"] <= 30:
+    #         symbol = row["new_symbol_call"]
+
+    # elif not indicators:
+    #     symbol = row["new_symbol_call"]
     
     return symbol
 
@@ -163,6 +165,7 @@ def buy_call_and_put(cash_data, new_data_put, new_data_call, entry_time, symbol_
 
     if entry_row.empty:
         return cash_data, None, None, None
+        # return cash_data
 
     buy_price = entry_row["open"].iloc[0]
 
