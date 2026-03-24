@@ -32,6 +32,7 @@ def match_atm_options(option_df, cash_df, symbol_col_name):
     return new_df
 
 
+
 def match_premium_options(option_df, cash_df, symbol_col_name, target_premium):
 
     merged_df = option_df.merge(
@@ -57,7 +58,7 @@ def match_premium_options(option_df, cash_df, symbol_col_name, target_premium):
     
 def entry_time_and_signal_symbol(cash_data, indicators, input_entry_time):
     
-    cash_data = cash_data[(cash_data["time"] >= 36000) & (cash_data["time"] <= 39600)]
+    # cash_data = cash_data[(cash_data["time"] >= 36000) & (cash_data["time"] <= 39600)]
 
     for _, row in cash_data.iterrows():
 

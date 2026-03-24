@@ -1,5 +1,8 @@
 import pandas as pd
+import sqlite3
+from datetime import datetime
 from flask import Flask,request,jsonify
+from flask_cors import CORS
 from pathlib import Path
 from Common.time import hhmm_to_seconds
 from Common.load_option_data import load_option_data
@@ -7,8 +10,15 @@ from Common.load_cash_data import load_cash_data
 from Common.indicators import rsi,bullish_n_bearish
 from Common.candle_diff_pct import candle_diff_pct
 from bull_bear import match_atm_options,entry_time_and_signal_symbol,buy_call_and_put,sell_trade,profit_loss,symbol,match_premium_options
+from flask_jwt_extended import (
+    JWTManager,
+    create_access_token,
+    jwt_required,
+    get_jwt_identity
+)
 
 def backtest(start_date, end_date, index_name, interval, sl_in_pct, target_in_pct,exit_time,indicators,input_entry_time,quantity,strike_criteria,premium):
+    
     base_path = Path("../data")
     results = []
 
@@ -76,9 +86,9 @@ def backtest(start_date, end_date, index_name, interval, sl_in_pct, target_in_pc
     call_data = call_data.sort_values(["date","time"]).reset_index(drop=True)
     put_data = put_data.sort_values(["date","time"]).reset_index(drop=True)
 
-    # cash_data.to_csv("cash.csv")
-    # call_data.to_csv("call.csv")
-    # put_data.to_csv("put.csv")
+    # cash_data.to_feather("cash.feather")
+    # call_data.to_feather("call.feather")
+    # put_data.to_feather("put.feather")
 
     cash_data = rsi(cash_data)
     cash_data = bullish_n_bearish(cash_data)
@@ -96,6 +106,7 @@ def backtest(start_date, end_date, index_name, interval, sl_in_pct, target_in_pc
 
     # new_data_call.to_csv("new_data_call.csv")
     # new_data_put.to_csv("new_data_put.csv")
+    # cash_data.to_csv("cash.csv")
     
     for date in cash_data["date"].unique():
 
@@ -145,6 +156,11 @@ def backtest(start_date, end_date, index_name, interval, sl_in_pct, target_in_pc
             "Profit_n_Loss": float(row["profit_n_loss"]),
         }
 
+        if "bullish_n_bearish_engulfing" in indicators and "rsi" in indicators:
+            result_row["Rsi_Value"] = float(row["rsi"])
+            result_row["Signal"] = str(row["pattern"])
+            result_row["Candle_diff_pct"] = float(row["candle_diff_pct"])
+
         if "rsi" in indicators:
             result_row["Rsi_Value"] = float(row["rsi"])
 
@@ -158,8 +174,84 @@ def backtest(start_date, end_date, index_name, interval, sl_in_pct, target_in_pc
 
 
 app = Flask(__name__)
+CORS(app)
+app.config["JWT_SECRET_KEY"] = "super-secret-key"
+jwt = JWTManager(app)
 
-@app.route("/backtest", methods=["POST"])
+@app.route("/")
+def home():
+    return {"message": "Flask API running"}
+
+
+
+@app.route("/login", methods=["POST"])
+def login():
+
+    data = request.get_json()
+
+    username = data.get("username")
+    password = data.get("password")
+
+    conn = sqlite3.connect("database.db")
+    cursor = conn.cursor()
+
+    cursor.execute(
+        "SELECT * FROM users WHERE username=? AND password=?",
+        (username,password)
+    )
+
+    user = cursor.fetchone()
+
+    conn.close()
+
+    if user:
+
+        access_token = create_access_token(identity=username)
+
+        return jsonify({
+            "success": True,
+            "token": access_token
+        })
+
+    return jsonify({"success": False})
+
+
+@app.route("/register", methods=["POST"])
+def register():
+
+    data = request.get_json()
+
+    username = data.get("username")
+    password = data.get("password")
+
+    conn = sqlite3.connect("database.db")
+    cursor = conn.cursor()
+
+    try:
+
+        cursor.execute(
+            "INSERT INTO users (username,password) VALUES (?,?)",
+            (username,password)
+        )
+
+        conn.commit()
+
+        conn.close()
+
+        return jsonify({"success": True})
+
+    except:
+
+        conn.close()
+
+        return jsonify({
+            "success": False,
+            "message": "Username already exists"
+        })
+
+
+@app.route("/backtest", methods=["POST","GET"])
+@jwt_required()
 def run_backtest():
 
     data = request.get_json()
@@ -168,21 +260,21 @@ def run_backtest():
     end_date = int(data.get("end_date"))
     index = data.get("index")
     interval = data.get("interval")
-    sl_in_pct = data.get("stop_loss_in_pct")
-    target_in_pct = data.get("target_in_pct")
+    sl_in_pct = int(data.get("stop_loss_in_pct"))
+    target_in_pct = int(data.get("target_in_pct"))
     exit_time = data.get("exit_time")
     indicators = data.get("indicators")
     input_entry_time = hhmm_to_seconds(data.get("entry_time"))
-    quantity = data.get("quantity")
+    quantity = int(data.get("quantity"))
     strike_criteria = data.get("strike_criteria")
-    premium = data.get("premium")
+    premium = int(data.get("premium"))
 
     result = backtest(start_date, end_date, index, interval, sl_in_pct, target_in_pct, exit_time, indicators, input_entry_time, quantity,strike_criteria,premium)
 
     return jsonify(result)
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True, port=5000)
 
 
 
