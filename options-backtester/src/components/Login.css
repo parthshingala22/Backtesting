@@ -25,6 +25,7 @@
 
 .login-box button{
   width:100%;
+  margin-top: 10px;
   padding:10px;
   background:#3498db;
   border:none;
@@ -36,4 +37,18 @@
 .register-link:hover{
   cursor: pointer;
   color: #3498db;
+}
+
+.error-text{
+  color:#e74c3c;
+  font-size:13px;
+  margin-top:5px;
+  margin-bottom: 5px;
+}
+
+.success-text{
+  color:#2ecc71;
+  font-size:13px;
+  margin-top:5px;
+  margin-bottom: 5px;
 }

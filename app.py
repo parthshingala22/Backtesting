@@ -18,6 +18,7 @@ from flask_jwt_extended import (
 )
 
 def backtest(start_date, end_date, index_name, interval, sl_in_pct, target_in_pct,exit_time,indicators,input_entry_time,quantity,strike_criteria,premium):
+# def backtest(start_date, end_date, index_name, interval, sl_in_pct, target_in_pct,exit_time,indicators,entry_start_time,entry_end_time,quantity,strike_criteria,premium):
     
     base_path = Path("../data")
     results = []
@@ -86,9 +87,9 @@ def backtest(start_date, end_date, index_name, interval, sl_in_pct, target_in_pc
     call_data = call_data.sort_values(["date","time"]).reset_index(drop=True)
     put_data = put_data.sort_values(["date","time"]).reset_index(drop=True)
 
-    # cash_data.to_feather("cash.feather")
-    # call_data.to_feather("call.feather")
-    # put_data.to_feather("put.feather")
+    # cash_data.to_csv("cash.csv")
+    # call_data.to_csv("call.csv")
+    # put_data.to_csv("put.csv")
 
     cash_data = rsi(cash_data)
     cash_data = bullish_n_bearish(cash_data)
@@ -114,12 +115,13 @@ def backtest(start_date, end_date, index_name, interval, sl_in_pct, target_in_pc
         day_call = new_data_call[new_data_call["date"] == date].copy()
         day_put = new_data_put[new_data_put["date"] == date].copy()
         
-        # if date == 220104:
-            # day_cash.to_csv("day_cash.csv")
-            # day_call.to_csv("day_call.csv")
-            # day_put.to_csv("day_put.csv")
+        # if date == 220118:
+        #     day_cash.to_csv("day_cash.csv")
+        #     day_call.to_csv("day_call.csv")
+        #     day_put.to_csv("day_put.csv")
 
         entry_time = entry_time_and_signal_symbol(day_cash, indicators, input_entry_time)
+        # entry_time = entry_time_and_signal_symbol(cash_data, indicators, entry_start_time, entry_end_time)
 
         if entry_time is None:
             continue
@@ -265,12 +267,28 @@ def run_backtest():
     exit_time = data.get("exit_time")
     indicators = data.get("indicators")
     input_entry_time = hhmm_to_seconds(data.get("entry_time"))
+    # entry_start_time = hhmm_to_seconds(data.get("entry_start_time"))
+    # entry_end_time = hhmm_to_seconds(data.get("entry_end_time"))
     quantity = int(data.get("quantity"))
     strike_criteria = data.get("strike_criteria")
     premium = int(data.get("premium"))
 
     result = backtest(start_date, end_date, index, interval, sl_in_pct, target_in_pct, exit_time, indicators, input_entry_time, quantity,strike_criteria,premium)
-
+    # result = backtest(
+    #     start_date,
+    #     end_date,
+    #     index,
+    #     interval,
+    #     sl_in_pct,
+    #     target_in_pct,
+    #     exit_time,
+    #     indicators,
+    #     entry_start_time,
+    #     entry_end_time,
+    #     quantity,
+    #     strike_criteria,
+    #     premium
+    # )
     return jsonify(result)
 
 if __name__ == "__main__":

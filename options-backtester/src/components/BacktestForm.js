@@ -33,6 +33,9 @@ function BacktestForm() {
     indicators: [],
     entry_time: "09:15",
     exit_time: "10:15",
+    // entry_start_time: "09:15",
+    // entry_end_time: "10:15",
+    // exit_time: "15:15",
     strike_mode: "Strike Type",
     strike_criteria: "ATM",
     premium: null,
@@ -42,6 +45,12 @@ function BacktestForm() {
   })
 
   const [results, setResults] = useState([])
+
+  const [currentPage, setCurrentPage] = useState(1)
+  const [startPage, setStartPage] = useState(1)
+
+  const tradesPerPage = 10
+  const visiblePages = 5
 
   const handleChange = (e) => {
 
@@ -180,10 +189,8 @@ function BacktestForm() {
 
     const csvRows = []
 
-    // header
     csvRows.push(columns.join(","))
 
-    // rows
     results.forEach(row => {
 
       const values = columns.map(col => row[col])
@@ -228,6 +235,68 @@ function BacktestForm() {
         tension: 0.3
       }
     ]
+  }
+
+
+  const indexOfLastTrade = currentPage * tradesPerPage
+  const indexOfFirstTrade = indexOfLastTrade - tradesPerPage
+
+  const currentTrades = results.slice(indexOfFirstTrade, indexOfLastTrade)
+
+  const totalPages = Math.ceil(results.length / tradesPerPage)
+
+  const pageNumbers = []
+
+  for (
+    let i = startPage;
+    i < startPage + visiblePages && i <= totalPages;
+    i++
+  ) {
+    pageNumbers.push(i)
+  }
+
+  const goNextPage = () => {
+
+    if (currentPage < totalPages) {
+
+      setCurrentPage(currentPage + 1)
+
+      if (currentPage >= startPage + visiblePages - 1) {
+        setStartPage(startPage + 1)
+      }
+
+    }
+
+  }
+
+  const goPrevPage = () => {
+
+    if (currentPage > 1) {
+
+      setCurrentPage(currentPage - 1)
+
+      if (currentPage <= startPage) {
+        setStartPage(startPage - 1)
+      }
+
+    }
+
+  }
+
+  const goFirst = () => {
+
+    setCurrentPage(1)
+    setStartPage(1)
+
+  }
+
+  const goLast = () => {
+
+    const lastStart = Math.max(totalPages - visiblePages + 1, 1)
+
+    setCurrentPage(totalPages)
+    setStartPage(lastStart)
+
   }
 
 
@@ -344,7 +413,6 @@ function BacktestForm() {
 
         </div>
 
-
         <h3>📌 Strike Criteria</h3>
 
         <h6>Strike Criteria</h6>
@@ -428,61 +496,10 @@ function BacktestForm() {
         </button>
 
 
-
-        {/* {results.length > 0 && (
-
-          <div className="strategy-report">
-
-            <h2>Strategy Report</h2>
-
-            <div className="report-row">
-              <span>Total PnL</span>
-              <span className={totalPnL >= 0 ? "profit" : "loss"}>
-                ₹ {totalPnL.toFixed(2)}
-              </span>
-            </div>
-
-            <div className="report-row">
-              <span>Total Trades</span>
-              <span>{totalTrades}</span>
-            </div>
-
-            <div className="report-row">
-              <span>Win Trades</span>
-              <span className="profit">{winTrades}</span>
-            </div>
-
-            <div className="report-row">
-              <span>Loss Trades</span>
-              <span className="loss">{lossTrades}</span>
-            </div>
-
-            <div className="report-row">
-              <span>Win Rate</span>
-              <span>{winRate}%</span>
-            </div>
-
-            <div className="report-row">
-              <span>Profit Factor</span>
-              <span>{profitFactor}</span>
-            </div>
-
-            <div className="report-row">
-              <span>Max Drawdown</span>
-              <span className="loss">₹ {maxDrawdown.toFixed(2)}</span>
-            </div>
-
-          </div>
-
-
-
-        )} */}
-
         {results.length > 0 && (
 
           <div className="report-chart-container">
 
-            {/* Strategy Report */}
             <div className="strategy-report">
 
               <h2>Strategy Report</h2>
@@ -527,7 +544,6 @@ function BacktestForm() {
             </div>
 
 
-            {/* Equity Chart */}
             <div className="equity-chart">
 
               <h2>Equity Curve</h2>
@@ -539,8 +555,6 @@ function BacktestForm() {
           </div>
 
         )}
-
-
 
         {results.length > 0 && (
 
@@ -565,7 +579,8 @@ function BacktestForm() {
 
               <tbody>
 
-                {results.map((trade, index) => (
+                {currentTrades.map((trade, index) => (
+
                   <tr key={index}>
 
                     <td>{trade.Date}</td>
@@ -574,44 +589,70 @@ function BacktestForm() {
                     <td>{trade.Exit_Time}</td>
                     <td>{trade.Buy_Price}</td>
                     <td>{trade.Sell_Price}</td>
-                    {/* <td>{trade.Profit_n_Loss}</td> */}
+
                     <td
                       className={
-                        trade.Profit_n_Loss >= 0 ? "profit-green" : "loss-red"
+                        trade.Profit_n_Loss >= 0
+                          ? "profit-green"
+                          : "loss-red"
                       }
                     >
                       {trade.Profit_n_Loss}
                     </td>
+
                     <td>{trade.Exit_Reason}</td>
 
                   </tr>
+
                 ))}
 
               </tbody>
 
             </table>
 
+
+
+            <div className="table-footer">
+
+              <button
+                onClick={downloadReport}
+                className="download-btn"
+              >
+                Download Report
+              </button>
+
+
+              <div className="pagination-container">
+
+                <button onClick={goFirst}>«</button>
+
+                <button onClick={goPrevPage}>‹</button>
+
+                {pageNumbers.map((page) => (
+                  <button
+                    key={page}
+                    className={
+                      currentPage === page
+                        ? "active-page"
+                        : ""
+                    }
+                    onClick={() => setCurrentPage(page)}
+                  >
+                    {page}
+                  </button>
+                ))}
+
+                <button onClick={goNextPage}>›</button>
+
+                <button onClick={goLast}>»</button>
+
+              </div>
+
+            </div>
+
           </div>
 
         )}
-
-        {results.length > 0 && (
-
-          <button onClick={downloadReport} className="download-btn">
-
-            Download Report
-
-          </button>
-
-        )}
-
-        <button onClick={() => {
-          // localStorage.removeItem("token")
-          sessionStorage.removeItem("token")
-          window.location.reload()
-        }}>
-          Logout
-        </button>
 
 
       </div>

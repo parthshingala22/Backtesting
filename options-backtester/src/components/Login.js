@@ -1,36 +1,30 @@
 import React, { useState } from "react";
 import "./Login.css";
+import { useNavigate } from "react-router-dom"
 
 function Login({ setLoggedIn, setShowRegister }) {
 
   const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
-
-  // const handleLogin = async () => {
-
-  //   const response = await fetch("http://localhost:5000/login",{
-  //     method:"POST",
-  //     headers:{
-  //       "Content-Type":"application/json"
-  //     },
-  //     body:JSON.stringify({
-  //       username:username,
-  //       password:password
-  //     })
-  //   })
-
-  //   const data = await response.json()
-
-  //   if(data.success){
-  //     setLoggedIn(true)
-  //   }
-  //   else{
-  //     alert("Invalid login")
-  //   }
-
-  // }
+  const navigate = useNavigate()
+  const [error, setError] = useState("")
 
   const handleLogin = async () => {
+
+    if (!username && !password) {
+      setError("Please enter username and password")
+      return
+    }
+
+    if (!username) {
+      setError("Please enter username")
+      return
+    }
+
+    if (!password) {
+      setError("Please enter password")
+      return
+    }
 
     const response = await fetch("http://localhost:5000/login", {
       method: "POST",
@@ -47,51 +41,66 @@ function Login({ setLoggedIn, setShowRegister }) {
 
     if (data.success) {
 
-      // localStorage.setItem("token", data.token)
-      sessionStorage.setItem("token",data.token)
-      
+      sessionStorage.setItem("token", data.token)
+
       setLoggedIn(true)
+
+      setError("")
+
+      navigate("/home")
 
     }
     else {
-      alert("Invalid login")
+      setError(data.message || "Invalid username or password")
     }
 
   }
-
 
   return (
 
     <div className="login-container">
 
-      <div className="login-box">
+      <form className="login-box" onSubmit={(e) => {
+        e.preventDefault()
+        handleLogin()
+      }}>
 
         <h2>Login</h2>
 
         <input
           type="text"
           placeholder="Username"
-          onChange={(e) => setUsername(e.target.value)}
+          value={username}
+          onChange={(e) => {
+            setUsername(e.target.value)
+            setError("")
+          }}
         />
 
         <input
           type="password"
           placeholder="Password"
-          onChange={(e) => setPassword(e.target.value)}
+          value={password}
+          onChange={(e) => {
+            setPassword(e.target.value)
+            setError("")
+          }}
         />
 
-        <button onClick={handleLogin}>
+        {error && <p className="error-text">{error}</p>}
+
+        <button type="submit">
           Login
         </button>
 
         <p
           className="register-link"
-          onClick={() => setShowRegister(true)}
+          onClick={() => navigate("/register")}
         >
           Create New Account
         </p>
 
-      </div>
+      </form>
 
     </div>
 
