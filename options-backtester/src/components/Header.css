@@ -43,7 +43,9 @@
 }
 
 .nav-btn.active {
-    font-weight: bold;
+    /* font-weight: bold; */
+    background: #0f3857;
+    /* border-radius: 4px; */
 }
 
 .nav-btn::after {
@@ -67,7 +69,7 @@
 
 .logout-btn {
     margin: 0px;
-    background: none;
+    background: #1e4d72;
     border: none;
     border-radius: 0px;
     color: white;
@@ -79,3 +81,75 @@
 .logout-btn:hover {
     background: #0f3857;
 }
+
+
+.profile-container {
+  position: relative;
+}
+
+.profile-circle {
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  background: white;
+  color: #1e4d72;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.profile-circle.big {
+  width: 35px;
+  height: 35px;
+  background: #1e4d72;
+  color: white;
+}
+
+
+.dropdown {
+  position: absolute;
+  right: 0;
+  top: 45px;
+  background: white;
+  color: black;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+  width: 220px;
+  padding: 15px;
+  z-index: 1000;
+}
+
+
+.dropdown-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.user-name {
+  font-weight: bold;
+  margin: 0;
+  font-size: 15px;
+}
+
+
+.dropdown hr {
+  margin: 12px 0;
+  border: none;
+  border-top: 1px solid #eee;
+}
+
+.dropdown-actions button {
+  width: 100%;
+  padding: 10px;
+  /* border: none; */
+  /* background: none; */
+  text-align: left;
+  cursor: pointer;
+  font-size: 14px;
+  border-radius: 6px;
+}
+
+

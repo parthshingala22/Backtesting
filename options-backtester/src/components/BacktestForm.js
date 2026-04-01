@@ -21,33 +21,49 @@ ChartJS.register(
   Legend
 )
 
-function BacktestForm() {
+
+
+
+function BacktestForm({ form, setForm }) {
+
+  const [showPopup, setShowPopup] = useState(false)
+  const [strategyName, setStrategyName] = useState("")
 
   const [loading, setLoading] = useState(false)
 
-  const [form, setForm] = useState({
-    start_date: 220101,
-    end_date: 220131,
-    index: "NIFTY",
-    interval: "1min",
-    indicators: [],
-    entry_time: "09:15",
-    exit_time: "10:15",
-    // entry_start_time: "09:15",
-    // entry_end_time: "10:15",
-    // exit_time: "15:15",
-    strike_mode: "Strike Type",
-    strike_criteria: "ATM",
-    premium: null,
-    stop_loss_in_pct: 10,
-    target_in_pct: 20,
-    quantity: 10
-  })
+  // const [form, setForm] = useState({
+  //   start_date: 220101,
+  //   end_date: 220131,
+  //   index: "NIFTY",
+  //   interval: "1min",
+  //   indicators: [],
+  //   entry_time: "09:15",
+  //   exit_time: "10:15",
+  //   strike_mode: "Strike Type",
+  //   strike_criteria: "ATM",
+  //   premium: null,
+  //   stop_loss_in_pct: 10,
+  //   target_in_pct: 20,
+  //   quantity: 10
+  // })
 
   const [results, setResults] = useState([])
 
   const [currentPage, setCurrentPage] = useState(1)
   const [startPage, setStartPage] = useState(1)
+
+
+  const formatDate = (dateNum) => {
+    if (!dateNum) return ""
+
+    const str = String(dateNum)
+    const year = "20" + str.slice(0, 2)
+    const month = str.slice(2, 4)
+    const day = str.slice(4, 6)
+
+    return `${year}-${month}-${day}`
+  }
+
 
   const tradesPerPage = 10
   const visiblePages = 5
@@ -114,6 +130,30 @@ function BacktestForm() {
     }
 
   }
+
+  const saveStrategy = () => {
+
+    if (!strategyName) {
+      alert("Enter strategy name")
+      return
+    }
+
+    const existing = JSON.parse(localStorage.getItem("strategies")) || []
+
+    const newStrategy = {
+      name: strategyName,
+      formData: form
+    }
+
+    localStorage.setItem(
+      "strategies",
+      JSON.stringify([...existing, newStrategy])
+    )
+
+    setShowPopup(false)
+    setStrategyName("")
+  }
+
 
 
   const totalTrades = results.length
@@ -303,362 +343,508 @@ function BacktestForm() {
 
   return (
 
-    <div className="container">
+    <div>
+      <div className="container">
 
-      {loading && (
+        {loading && (
 
-        <div className="loading-overlay">
+          <div className="loading-overlay">
 
-          <div className="spinner"></div>
-          <p>Running Backtest...</p>
+            <div className="spinner"></div>
+            <p>Running Backtest...</p>
+
+          </div>
+
+        )}
+        <div>
+
+          <h3>📅 Backtest Period</h3>
+
+          <h6>Start Date</h6>
+          {/* <input type="date" name="start_date" defaultValue="2022-01-01" onChange={handleChange} /> */}
+          <input
+            type="date"
+            name="start_date"
+            value={formatDate(form.start_date)}
+            onChange={handleChange}
+          />
+          <h6>End Date</h6>
+          {/* <input type="date" name="end_date" defaultValue="2022-01-31" onChange={handleChange} /> */}
+          <input
+            type="date"
+            name="end_date"
+            value={formatDate(form.end_date)}
+            onChange={handleChange}
+          />
+
+          <h3>📊 Market Settings</h3>
+
+          <h6>Index</h6>
+          {/* <select name="index" onChange={handleChange}>
+            <option>NIFTY</option>
+            <option>BANKNIFTY</option>
+            <option>MCX</option>
+          </select> */}
+          <select name="index" value={form.index} onChange={handleChange}>
+            <option>NIFTY</option>
+            <option>BANKNIFTY</option>
+            <option>MCX</option>
+          </select>
+
+          <h6>Interval</h6>
+          {/* <select name="interval" onChange={handleChange}>
+            <option>1min</option>
+            <option>3min</option>
+            <option>5min</option>
+            <option>15min</option>
+          </select> */}
+          <select name="interval" value={form.interval} onChange={handleChange}>
+            <option>1min</option>
+            <option>3min</option>
+            <option>5min</option>
+            <option>15min</option>
+          </select>
+
+
+          <h3>Indicators</h3>
+
+          <select
+            onChange={(e) => {
+
+              const value = e.target.value
+
+              if (value === "") return
+
+              if (!form.indicators.includes(value)) {
+                setForm({
+                  ...form,
+                  indicators: [...form.indicators, value]
+                })
+              }
+
+              e.target.value = ""
+
+            }}
+          >
+
+            <option value="">Select Indicator</option>
+            <option value="rsi">RSI</option>
+            <option value="bullish_n_bearish_engulfing">Engulfing</option>
+
+          </select>
+
+
+          <div className="indicator-bucket">
+
+            {form.indicators.map((indicator, index) => (
+
+              <div className="indicator-tag" key={index}>
+
+                {indicator === "rsi" ? "RSI" : "Engulfing"}
+
+                <span
+                  onClick={() => {
+                    setForm({
+                      ...form,
+                      indicators: form.indicators.filter(i => i !== indicator)
+                    })
+                  }}
+                >
+                  ✕
+                </span>
+
+              </div>
+
+            ))}
+
+          </div>
+
+
+
+          <h3>⏰ Trade Entry</h3>
+
+          <div className="time-row">
+
+            <div>
+              <h6>Entry Time</h6>
+              {/* <input type="time" name="entry_time" value={form.entry_time} onChange={handleChange} /> */}
+              <input
+                type="time"
+                name="entry_time"
+                value={form.entry_time}
+                onChange={handleChange}
+              />
+            </div>
+
+            <div>
+              <h6>Exit Time</h6>
+              {/* <input type="time" name="exit_time" value={form.exit_time} onChange={handleChange} /> */}
+              <input
+                type="time"
+                name="exit_time"
+                value={form.exit_time}
+                onChange={handleChange}
+              />
+            </div>
+
+          </div>
+
+          <h3>📌 Strike Criteria</h3>
+
+          <h6>Strike Criteria</h6>
+          {/* <select
+            name="strike_mode"
+            value={form.strike_mode}
+            onChange={(e) => {
+              const value = e.target.value
+
+              setForm({
+                ...form,
+                strike_mode: value,
+                strike_criteria: value === "Strike Type" ? "ATM" : "premium",
+                premium: value === "Premium Based" ? 250 : null
+              })
+            }}
+          >
+            <option>Strike Type</option>
+            <option>Premium Based</option>
+          </select> */}
+          <select
+            name="strike_mode"
+            value={form.strike_mode}
+            onChange={(e) => {
+              const value = e.target.value
+
+              setForm({
+                ...form,
+                strike_mode: value,
+                strike_criteria: value === "Strike Type" ? "ATM" : "premium",
+                premium: value === "Premium Based" ? 250 : null
+              })
+            }}
+          >
+            <option>Strike Type</option>
+            <option>Premium Based</option>
+          </select>
+
+
+          {form.strike_mode === "Strike Type" ? (
+
+            // <select
+            //   name="strike_criteria"
+            //   value={form.strike_criteria}
+            //   onChange={handleChange}
+            // >
+            //   <option value="ATM">ATM</option>
+            //   <option value="ITM">ITM</option>
+            //   <option value="OTM">OTM</option>
+            // </select>
+            <select
+              name="strike_criteria"
+              value={form.strike_criteria}
+              onChange={handleChange}
+            >
+              <option value="ATM">ATM</option>
+              <option value="ITM">ITM</option>
+              <option value="OTM">OTM</option>
+            </select>
+
+          ) : (
+
+            // <input
+            //   type="number"
+            //   name="premium"
+            //   placeholder="Enter Premium"
+            //   value={form.premium || ""}
+            //   onChange={handleChange}
+            // />
+            <input
+              type="number"
+              name="premium"
+              placeholder="Enter Premium"
+              value={form.premium || ""}
+              onChange={handleChange}
+            />
+
+          )}
+
+
+          <h3>⚠ Risk Management</h3>
+
+          <h6>Stop Loss</h6>
+          {/* <input
+            type="number"
+            name="stop_loss_in_pct"
+            value={form.stop_loss_in_pct}
+            onChange={handleChange}
+          /> */}
+          <input
+            type="number"
+            name="stop_loss_in_pct"
+            value={form.stop_loss_in_pct}
+            onChange={handleChange}
+          />
+
+          <h6>Target</h6>
+          {/* <input
+            type="number"
+            name="target_in_pct"
+            value={form.target_in_pct}
+            onChange={handleChange}
+          /> */}
+          <input
+            type="number"
+            name="target_in_pct"
+            value={form.target_in_pct}
+            onChange={handleChange}
+          />
+
+
+          <h3>📦 Position Size</h3>
+
+          <h6>Lot Quantity</h6>
+          {/* <input
+            type="number"
+            name="quantity"
+            value={form.quantity}
+            onChange={handleChange}
+          /> */}
+          <input
+            type="number"
+            name="quantity"
+            value={form.quantity}
+            onChange={handleChange}
+          />
+
+          <br /><br />
+
+          {/* <button onClick={runBacktest}>
+            🚀 Run Backtest
+          </button> */}
+
+
+          {results.length > 0 && (
+
+            <div className="report-chart-container">
+
+              <div className="strategy-report">
+
+                <h2>Strategy Report</h2>
+
+                <div className="report-row">
+                  <span>Total PnL</span>
+                  <span className={totalPnL >= 0 ? "profit" : "loss"}>
+                    ₹ {totalPnL.toFixed(2)}
+                  </span>
+                </div>
+
+                <div className="report-row">
+                  <span>Total Trades</span>
+                  <span>{totalTrades}</span>
+                </div>
+
+                <div className="report-row">
+                  <span>Win Trades</span>
+                  <span className="profit">{winTrades}</span>
+                </div>
+
+                <div className="report-row">
+                  <span>Loss Trades</span>
+                  <span className="loss">{lossTrades}</span>
+                </div>
+
+                <div className="report-row">
+                  <span>Win Rate</span>
+                  <span>{winRate}%</span>
+                </div>
+
+                <div className="report-row">
+                  <span>Profit Factor</span>
+                  <span>{profitFactor}</span>
+                </div>
+
+                <div className="report-row">
+                  <span>Max Drawdown</span>
+                  <span className="loss">₹ {maxDrawdown.toFixed(2)}</span>
+                </div>
+
+              </div>
+
+
+              <div className="equity-chart">
+
+                <h2>Equity Curve</h2>
+
+                <Line data={chartData} />
+
+              </div>
+
+            </div>
+
+          )}
+
+          {results.length > 0 && (
+
+            <div className="results-section">
+
+              <h2>📊 Trade Results</h2>
+
+              <table className="results-table">
+
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Symbol</th>
+                    <th>Entry</th>
+                    <th>Exit</th>
+                    <th>Buy Price</th>
+                    <th>Sell Price</th>
+                    <th>PnL</th>
+                    <th>Exit Reason</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+
+                  {currentTrades.map((trade, index) => (
+
+                    <tr key={index}>
+
+                      <td>{trade.Date}</td>
+                      <td>{trade.Symbol}</td>
+                      <td>{trade.Entry_Time}</td>
+                      <td>{trade.Exit_Time}</td>
+                      <td>{trade.Buy_Price}</td>
+                      <td>{trade.Sell_Price}</td>
+
+                      <td
+                        className={
+                          trade.Profit_n_Loss >= 0
+                            ? "profit-green"
+                            : "loss-red"
+                        }
+                      >
+                        {trade.Profit_n_Loss}
+                      </td>
+
+                      <td>{trade.Exit_Reason}</td>
+
+                    </tr>
+
+                  ))}
+
+                </tbody>
+
+              </table>
+
+
+
+              <div className="table-footer">
+
+                <button
+                  onClick={downloadReport}
+                  className="download-btn"
+                >
+                  Download Report
+                </button>
+
+
+                <div className="pagination-container">
+
+                  <button onClick={goFirst}>«</button>
+
+                  <button onClick={goPrevPage}>‹</button>
+
+                  {pageNumbers.map((page) => (
+                    <button
+                      key={page}
+                      className={
+                        currentPage === page
+                          ? "active-page"
+                          : ""
+                      }
+                      onClick={() => setCurrentPage(page)}
+                    >
+                      {page}
+                    </button>
+                  ))}
+
+                  <button onClick={goNextPage}>›</button>
+
+                  <button onClick={goLast}>»</button>
+
+                </div>
+
+              </div>
+
+            </div>
+
+          )}
+
+
+        </div>
+
+      </div>
+
+      <div className="footer">
+
+        <div className="footer-btn">
+
+          <button className="save-btn" onClick={() => setShowPopup(true)}>
+            💾 Save Strategy
+          </button>
+
+          <button className="run-btn" onClick={runBacktest}>
+            🚀 Run Backtest
+          </button>
+
+        </div>
+
+      </div>
+
+      {showPopup && (
+
+        <div className="popup-overlay">
+
+          <div className="popup">
+
+            <div className="popup-header">
+              <h3>Save New Strategy</h3>
+              <span onClick={() => setShowPopup(false)}>✕</span>
+            </div>
+
+            <p>Strategy Name:</p>
+
+            <input
+              type="text"
+              placeholder="Enter Strategy Name"
+              value={strategyName}
+              onChange={(e) => setStrategyName(e.target.value)}
+            />
+
+            <div className="popup-actions">
+
+              <button onClick={() => setShowPopup(false)}>
+                Cancel
+              </button>
+
+              <button onClick={saveStrategy}>
+                Done
+              </button>
+
+            </div>
+
+          </div>
 
         </div>
 
       )}
-      <div>
-
-        <h3>📅 Backtest Period</h3>
-
-        <h6>Start Date</h6>
-        <input type="date" name="start_date" defaultValue="2022-01-01" onChange={handleChange} />
-        <h6>End Date</h6>
-        <input type="date" name="end_date" defaultValue="2022-01-31" onChange={handleChange} />
-
-        <h3>📊 Market Settings</h3>
-
-        <h6>Index</h6>
-        <select name="index" onChange={handleChange}>
-          <option>NIFTY</option>
-          <option>BANKNIFTY</option>
-          <option>MCX</option>
-        </select>
-
-        <h6>Interval</h6>
-        <select name="interval" onChange={handleChange}>
-          <option>1min</option>
-          <option>3min</option>
-          <option>5min</option>
-          <option>15min</option>
-        </select>
-
-
-        <h3>Indicators</h3>
-
-        <select
-          onChange={(e) => {
-
-            const value = e.target.value
-
-            if (value === "") return
-
-            if (!form.indicators.includes(value)) {
-              setForm({
-                ...form,
-                indicators: [...form.indicators, value]
-              })
-            }
-
-            e.target.value = ""
-
-          }}
-        >
-
-          <option value="">Select Indicator</option>
-          <option value="rsi">RSI</option>
-          <option value="bullish_n_bearish_engulfing">Engulfing</option>
-
-        </select>
-
-
-        <div className="indicator-bucket">
-
-          {form.indicators.map((indicator, index) => (
-
-            <div className="indicator-tag" key={index}>
-
-              {indicator === "rsi" ? "RSI" : "Engulfing"}
-
-              <span
-                onClick={() => {
-                  setForm({
-                    ...form,
-                    indicators: form.indicators.filter(i => i !== indicator)
-                  })
-                }}
-              >
-                ✕
-              </span>
-
-            </div>
-
-          ))}
-
-        </div>
-
-
-
-        <h3>⏰ Trade Entry</h3>
-
-        <div className="time-row">
-
-          <div>
-            <h6>Entry Time</h6>
-            <input type="time" name="entry_time" value={form.entry_time} onChange={handleChange} />
-          </div>
-
-          <div>
-            <h6>Exit Time</h6>
-            <input type="time" name="exit_time" value={form.exit_time} onChange={handleChange} />
-          </div>
-
-        </div>
-
-        <h3>📌 Strike Criteria</h3>
-
-        <h6>Strike Criteria</h6>
-        <select
-          name="strike_mode"
-          value={form.strike_mode}
-          onChange={(e) => {
-            const value = e.target.value
-
-            setForm({
-              ...form,
-              strike_mode: value,
-              strike_criteria: value === "Strike Type" ? "ATM" : "premium",
-              premium: value === "Premium Based" ? 250 : null
-            })
-          }}
-        >
-          <option>Strike Type</option>
-          <option>Premium Based</option>
-        </select>
-
-
-        {form.strike_mode === "Strike Type" ? (
-
-          <select
-            name="strike_criteria"
-            value={form.strike_criteria}
-            onChange={handleChange}
-          >
-            <option value="ATM">ATM</option>
-            <option value="ITM">ITM</option>
-            <option value="OTM">OTM</option>
-          </select>
-
-        ) : (
-
-          <input
-            type="number"
-            name="premium"
-            placeholder="Enter Premium"
-            value={form.premium || ""}
-            onChange={handleChange}
-          />
-
-        )}
-
-
-        <h3>⚠ Risk Management</h3>
-
-        <h6>Stop Loss</h6>
-        <input
-          type="number"
-          name="stop_loss_in_pct"
-          value={form.stop_loss_in_pct}
-          onChange={handleChange}
-        />
-
-        <h6>Target</h6>
-        <input
-          type="number"
-          name="target_in_pct"
-          value={form.target_in_pct}
-          onChange={handleChange}
-        />
-
-
-        <h3>📦 Position Size</h3>
-
-        <h6>Lot Quantity</h6>
-        <input
-          type="number"
-          name="quantity"
-          value={form.quantity}
-          onChange={handleChange}
-        />
-
-        <br /><br />
-
-        <button onClick={runBacktest}>
-          🚀 Run Backtest
-        </button>
-
-
-        {results.length > 0 && (
-
-          <div className="report-chart-container">
-
-            <div className="strategy-report">
-
-              <h2>Strategy Report</h2>
-
-              <div className="report-row">
-                <span>Total PnL</span>
-                <span className={totalPnL >= 0 ? "profit" : "loss"}>
-                  ₹ {totalPnL.toFixed(2)}
-                </span>
-              </div>
-
-              <div className="report-row">
-                <span>Total Trades</span>
-                <span>{totalTrades}</span>
-              </div>
-
-              <div className="report-row">
-                <span>Win Trades</span>
-                <span className="profit">{winTrades}</span>
-              </div>
-
-              <div className="report-row">
-                <span>Loss Trades</span>
-                <span className="loss">{lossTrades}</span>
-              </div>
-
-              <div className="report-row">
-                <span>Win Rate</span>
-                <span>{winRate}%</span>
-              </div>
-
-              <div className="report-row">
-                <span>Profit Factor</span>
-                <span>{profitFactor}</span>
-              </div>
-
-              <div className="report-row">
-                <span>Max Drawdown</span>
-                <span className="loss">₹ {maxDrawdown.toFixed(2)}</span>
-              </div>
-
-            </div>
-
-
-            <div className="equity-chart">
-
-              <h2>Equity Curve</h2>
-
-              <Line data={chartData} />
-
-            </div>
-
-          </div>
-
-        )}
-
-        {results.length > 0 && (
-
-          <div className="results-section">
-
-            <h2>📊 Trade Results</h2>
-
-            <table className="results-table">
-
-              <thead>
-                <tr>
-                  <th>Date</th>
-                  <th>Symbol</th>
-                  <th>Entry</th>
-                  <th>Exit</th>
-                  <th>Buy Price</th>
-                  <th>Sell Price</th>
-                  <th>PnL</th>
-                  <th>Exit Reason</th>
-                </tr>
-              </thead>
-
-              <tbody>
-
-                {currentTrades.map((trade, index) => (
-
-                  <tr key={index}>
-
-                    <td>{trade.Date}</td>
-                    <td>{trade.Symbol}</td>
-                    <td>{trade.Entry_Time}</td>
-                    <td>{trade.Exit_Time}</td>
-                    <td>{trade.Buy_Price}</td>
-                    <td>{trade.Sell_Price}</td>
-
-                    <td
-                      className={
-                        trade.Profit_n_Loss >= 0
-                          ? "profit-green"
-                          : "loss-red"
-                      }
-                    >
-                      {trade.Profit_n_Loss}
-                    </td>
-
-                    <td>{trade.Exit_Reason}</td>
-
-                  </tr>
-
-                ))}
-
-              </tbody>
-
-            </table>
-
-
-
-            <div className="table-footer">
-
-              <button
-                onClick={downloadReport}
-                className="download-btn"
-              >
-                Download Report
-              </button>
-
-
-              <div className="pagination-container">
-
-                <button onClick={goFirst}>«</button>
-
-                <button onClick={goPrevPage}>‹</button>
-
-                {pageNumbers.map((page) => (
-                  <button
-                    key={page}
-                    className={
-                      currentPage === page
-                        ? "active-page"
-                        : ""
-                    }
-                    onClick={() => setCurrentPage(page)}
-                  >
-                    {page}
-                  </button>
-                ))}
-
-                <button onClick={goNextPage}>›</button>
-
-                <button onClick={goLast}>»</button>
-
-              </div>
-
-            </div>
-
-          </div>
-
-        )}
-
-
-      </div>
 
     </div>
+
+
   )
+
 
 }
 

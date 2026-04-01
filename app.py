@@ -212,7 +212,9 @@ def login():
 
         return jsonify({
             "success": True,
-            "token": access_token
+            "token": access_token,
+            "first_name": user[1],
+            "last_name": user[3]
         })
 
     return jsonify({"success": False})
@@ -222,7 +224,10 @@ def login():
 def register():
 
     data = request.get_json()
-
+    
+    first_name = data.get("first_name")
+    middle_name = data.get("middle_name")
+    last_name = data.get("last_name")
     username = data.get("username")
     password = data.get("password")
 
@@ -232,8 +237,11 @@ def register():
     try:
 
         cursor.execute(
-            "INSERT INTO users (username,password) VALUES (?,?)",
-            (username,password)
+            """
+            INSERT INTO users (first_name, middle_name, last_name, username, password)
+            VALUES (?, ?, ?, ?, ?)
+            """,
+            (first_name, middle_name, last_name, username, password)
         )
 
         conn.commit()

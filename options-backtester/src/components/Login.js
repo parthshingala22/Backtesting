@@ -43,6 +43,9 @@ function Login({ setLoggedIn, setShowRegister }) {
 
       sessionStorage.setItem("token", data.token)
 
+      sessionStorage.setItem("first_name", data.first_name)
+      sessionStorage.setItem("last_name", data.last_name)
+
       setLoggedIn(true)
 
       setError("")

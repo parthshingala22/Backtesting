@@ -5,6 +5,9 @@ function Register() {
 
   const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
+  const [firstName, setFirstName] = useState("")
+  const [middleName, setMiddleName] = useState("")
+  const [lastName, setLastName] = useState("")
   const [error, setError] = useState("")
   const [success, setSuccess] = useState("")
 
@@ -12,8 +15,18 @@ function Register() {
 
   const handleRegister = async () => {
 
-    if (!username && !password) {
-      setError("Please enter username and password")
+    if (!firstName && !lastName && !username && !password) {
+      setError("Please fill all required fields")
+      return
+    }
+
+    if (!firstName) {
+      setError("First name is required")
+      return
+    }
+
+    if (!lastName) {
+      setError("Last name is required")
       return
     }
 
@@ -32,7 +45,15 @@ function Register() {
       headers: {
         "Content-Type": "application/json"
       },
+      // body: JSON.stringify({
+      //   name,
+      //   username,
+      //   password
+      // })
       body: JSON.stringify({
+        first_name: firstName,
+        middle_name: middleName,
+        last_name: lastName,
         username,
         password
       })
@@ -44,6 +65,9 @@ function Register() {
 
       setError("")
       setSuccess("Account created successfully")
+      setFirstName("")
+      setMiddleName("")
+      setLastName("")
       setUsername("")
       setPassword("")
 
@@ -73,6 +97,39 @@ function Register() {
       >
 
         <h2>Create Account</h2>
+
+        <input
+          type="text"
+          placeholder="First Name *"
+          value={firstName}
+          onChange={(e) => {
+            setFirstName(e.target.value)
+            setError("")
+            setSuccess("")
+          }}
+        />
+
+        <input
+          type="text"
+          placeholder="Middle Name (Optional)"
+          value={middleName}
+          onChange={(e) => {
+            setMiddleName(e.target.value)
+            setError("")
+            setSuccess("")
+          }}
+        />
+
+        <input
+          type="text"
+          placeholder="Last Name *"
+          value={lastName}
+          onChange={(e) => {
+            setLastName(e.target.value)
+            setError("")
+            setSuccess("")
+          }}
+        />
 
         <input
           type="text"

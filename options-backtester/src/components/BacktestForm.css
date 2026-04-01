@@ -4,7 +4,7 @@ body {
 }
 
 .container {
-  max-width: 900px;
+  max-width: 1000px;
   margin: auto;
   padding: 30px;
   background: white;
@@ -318,4 +318,89 @@ button:hover {
 .active-page {
   background: #1e4d72;
   color: white;
+}
+
+
+
+.footer {
+  display: flex;
+  position: sticky;
+  bottom: 0;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 10px 25px;
+  background: white;
+  box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+}
+
+.footer-btn{
+  display: flex;
+  gap: 5px;
+}
+
+
+.run-btn {
+  width: 150px;
+  padding: 12px;
+  margin-top: 0px;
+  background: #1fb15c;
+  border: none;
+  color: white;
+  font-size: 16px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.run-btn:hover {
+  background: #0f7d3d;
+}
+
+
+
+
+.save-btn {
+  width: 200px;
+  padding: 12px;
+  margin-top: 0px;
+  background: #34495e;
+  color: white;
+  font-size: 16px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.save-btn:hover {
+  background: #2c3e50;
+}
+
+
+.popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+}
+
+.popup {
+  background: white;
+  padding: 20px;
+  width: 400px;
+  border-radius: 10px;
+}
+
+.popup-header {
+  display: flex;
+  justify-content: space-between;
+}
+
+.popup-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
 }
