@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./BacktestForm.css";
 import {
   Chart as ChartJS,
@@ -24,33 +24,77 @@ ChartJS.register(
 
 
 
-function BacktestForm({ form, setForm }) {
+function BacktestForm({ pendingForm, loadedStrategy, setLoadedStrategy }) {
 
   const [showPopup, setShowPopup] = useState(false)
   const [strategyName, setStrategyName] = useState("")
-
   const [loading, setLoading] = useState(false)
-
-  // const [form, setForm] = useState({
-  //   start_date: 220101,
-  //   end_date: 220131,
-  //   index: "NIFTY",
-  //   interval: "1min",
-  //   indicators: [],
-  //   entry_time: "09:15",
-  //   exit_time: "10:15",
-  //   strike_mode: "Strike Type",
-  //   strike_criteria: "ATM",
-  //   premium: null,
-  //   stop_loss_in_pct: 10,
-  //   target_in_pct: 20,
-  //   quantity: 10
-  // })
-
   const [results, setResults] = useState([])
-
   const [currentPage, setCurrentPage] = useState(1)
   const [startPage, setStartPage] = useState(1)
+  const [isEditingName, setIsEditingName] = useState(false)
+  const [editedName, setEditedName] = useState("")
+  const [form, setForm] = useState({
+    start_date: 220101,
+    end_date: 220131,
+    index: "NIFTY",
+    interval: "1min",
+    indicators: [],
+    entry_time: "09:15",
+    exit_time: "10:15",
+    strike_mode: "Strike Type",
+    strike_criteria: "ATM",
+    premium: null,
+    stop_loss_in_pct: 10,
+    target_in_pct: 20,
+    quantity: 10
+  })
+
+  useEffect(() => {
+    if (pendingForm) {
+      setForm(pendingForm)
+    }
+    if (loadedStrategy) {
+      setEditedName(loadedStrategy.name)
+    }
+  }, [pendingForm, loadedStrategy])
+
+  const saveStrategyName = () => {
+    if (!editedName.trim()) {
+      alert("Strategy name cannot be empty")
+      return
+    }
+
+    const existing = JSON.parse(localStorage.getItem("strategies")) || []
+    existing[loadedStrategy.index] = {
+      ...existing[loadedStrategy.index],
+      name: editedName.trim()
+    }
+    localStorage.setItem("strategies", JSON.stringify(existing))
+
+    setLoadedStrategy({ ...loadedStrategy, name: editedName.trim() })
+
+    setIsEditingName(false)
+  }
+
+
+
+  const updateStrategy = () => {
+    if (!loadedStrategy) return
+
+    const existing = JSON.parse(localStorage.getItem("strategies")) || []
+    existing[loadedStrategy.index] = {
+      name: loadedStrategy.name,
+      formData: form
+    }
+    localStorage.setItem("strategies", JSON.stringify(existing))
+    alert("Strategy updated!")
+  }
+
+  const saveAsNew = () => {
+    setLoadedStrategy(null)
+    setShowPopup(true)
+  }
 
 
   const formatDate = (dateNum) => {
@@ -91,6 +135,8 @@ function BacktestForm({ form, setForm }) {
   }
 
 
+
+
   const runBacktest = async () => {
 
     try {
@@ -100,7 +146,6 @@ function BacktestForm({ form, setForm }) {
       const payload = { ...form }
       delete payload.strike_mode
 
-      // const token = localStorage.getItem("token")
       const token = sessionStorage.getItem("token")
 
       const response = await fetch("http://localhost:5000/backtest", {
@@ -344,6 +389,21 @@ function BacktestForm({ form, setForm }) {
   return (
 
     <div>
+
+      {loadedStrategy && (
+        <div className="loaded-strategy-bar">
+          <div className="strategy-name-display">
+            <span className="loaded-name">{loadedStrategy.name}</span>
+            <button className="name-edit-btn" onClick={() => {
+              setEditedName(loadedStrategy.name)
+              setIsEditingName(true)
+            }}>
+              ✏️ Edit Name
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="container">
 
         {loading && (
@@ -361,7 +421,6 @@ function BacktestForm({ form, setForm }) {
           <h3>📅 Backtest Period</h3>
 
           <h6>Start Date</h6>
-          {/* <input type="date" name="start_date" defaultValue="2022-01-01" onChange={handleChange} /> */}
           <input
             type="date"
             name="start_date"
@@ -369,7 +428,6 @@ function BacktestForm({ form, setForm }) {
             onChange={handleChange}
           />
           <h6>End Date</h6>
-          {/* <input type="date" name="end_date" defaultValue="2022-01-31" onChange={handleChange} /> */}
           <input
             type="date"
             name="end_date"
@@ -380,24 +438,13 @@ function BacktestForm({ form, setForm }) {
           <h3>📊 Market Settings</h3>
 
           <h6>Index</h6>
-          {/* <select name="index" onChange={handleChange}>
-            <option>NIFTY</option>
-            <option>BANKNIFTY</option>
-            <option>MCX</option>
-          </select> */}
-          <select name="index" value={form.index} onChange={handleChange}>
+          <select name="index" value={form.index} onCha nge={handleChange}>
             <option>NIFTY</option>
             <option>BANKNIFTY</option>
             <option>MCX</option>
           </select>
 
           <h6>Interval</h6>
-          {/* <select name="interval" onChange={handleChange}>
-            <option>1min</option>
-            <option>3min</option>
-            <option>5min</option>
-            <option>15min</option>
-          </select> */}
           <select name="interval" value={form.interval} onChange={handleChange}>
             <option>1min</option>
             <option>3min</option>
@@ -467,7 +514,6 @@ function BacktestForm({ form, setForm }) {
 
             <div>
               <h6>Entry Time</h6>
-              {/* <input type="time" name="entry_time" value={form.entry_time} onChange={handleChange} /> */}
               <input
                 type="time"
                 name="entry_time"
@@ -478,7 +524,6 @@ function BacktestForm({ form, setForm }) {
 
             <div>
               <h6>Exit Time</h6>
-              {/* <input type="time" name="exit_time" value={form.exit_time} onChange={handleChange} /> */}
               <input
                 type="time"
                 name="exit_time"
@@ -492,23 +537,6 @@ function BacktestForm({ form, setForm }) {
           <h3>📌 Strike Criteria</h3>
 
           <h6>Strike Criteria</h6>
-          {/* <select
-            name="strike_mode"
-            value={form.strike_mode}
-            onChange={(e) => {
-              const value = e.target.value
-
-              setForm({
-                ...form,
-                strike_mode: value,
-                strike_criteria: value === "Strike Type" ? "ATM" : "premium",
-                premium: value === "Premium Based" ? 250 : null
-              })
-            }}
-          >
-            <option>Strike Type</option>
-            <option>Premium Based</option>
-          </select> */}
           <select
             name="strike_mode"
             value={form.strike_mode}
@@ -529,16 +557,6 @@ function BacktestForm({ form, setForm }) {
 
 
           {form.strike_mode === "Strike Type" ? (
-
-            // <select
-            //   name="strike_criteria"
-            //   value={form.strike_criteria}
-            //   onChange={handleChange}
-            // >
-            //   <option value="ATM">ATM</option>
-            //   <option value="ITM">ITM</option>
-            //   <option value="OTM">OTM</option>
-            // </select>
             <select
               name="strike_criteria"
               value={form.strike_criteria}
@@ -551,13 +569,6 @@ function BacktestForm({ form, setForm }) {
 
           ) : (
 
-            // <input
-            //   type="number"
-            //   name="premium"
-            //   placeholder="Enter Premium"
-            //   value={form.premium || ""}
-            //   onChange={handleChange}
-            // />
             <input
               type="number"
               name="premium"
@@ -572,12 +583,6 @@ function BacktestForm({ form, setForm }) {
           <h3>⚠ Risk Management</h3>
 
           <h6>Stop Loss</h6>
-          {/* <input
-            type="number"
-            name="stop_loss_in_pct"
-            value={form.stop_loss_in_pct}
-            onChange={handleChange}
-          /> */}
           <input
             type="number"
             name="stop_loss_in_pct"
@@ -586,12 +591,6 @@ function BacktestForm({ form, setForm }) {
           />
 
           <h6>Target</h6>
-          {/* <input
-            type="number"
-            name="target_in_pct"
-            value={form.target_in_pct}
-            onChange={handleChange}
-          /> */}
           <input
             type="number"
             name="target_in_pct"
@@ -603,12 +602,6 @@ function BacktestForm({ form, setForm }) {
           <h3>📦 Position Size</h3>
 
           <h6>Lot Quantity</h6>
-          {/* <input
-            type="number"
-            name="quantity"
-            value={form.quantity}
-            onChange={handleChange}
-          /> */}
           <input
             type="number"
             name="quantity"
@@ -617,11 +610,6 @@ function BacktestForm({ form, setForm }) {
           />
 
           <br /><br />
-
-          {/* <button onClick={runBacktest}>
-            🚀 Run Backtest
-          </button> */}
-
 
           {results.length > 0 && (
 
@@ -787,20 +775,30 @@ function BacktestForm({ form, setForm }) {
       </div>
 
       <div className="footer">
-
         <div className="footer-btn">
 
-          <button className="save-btn" onClick={() => setShowPopup(true)}>
-            💾 Save Strategy
-          </button>
+          {loadedStrategy ? (
+            <>
+              <button className="save-btn" onClick={updateStrategy}>
+                💾 Update Strategy
+              </button>
+              <button className="saveas-btn" onClick={saveAsNew}>
+                ➕ Save as New
+              </button>
+            </>
+          ) : (
+            <button className="save-btn" onClick={() => setShowPopup(true)}>
+              💾 Save Strategy
+            </button>
+          )}
 
           <button className="run-btn" onClick={runBacktest}>
             🚀 Run Backtest
           </button>
 
         </div>
-
       </div>
+
 
       {showPopup && (
 
@@ -809,26 +807,73 @@ function BacktestForm({ form, setForm }) {
           <div className="popup">
 
             <div className="popup-header">
-              <h3>Save New Strategy</h3>
-              <span onClick={() => setShowPopup(false)}>✕</span>
+              <h3 className="popup-header-name">Save New Strategy</h3>
+              <span className="popup-close-tag" onClick={() => setShowPopup(false)}>✕</span>
             </div>
 
-            <p>Strategy Name:</p>
+            <hr></hr>
 
-            <input
-              type="text"
-              placeholder="Enter Strategy Name"
-              value={strategyName}
-              onChange={(e) => setStrategyName(e.target.value)}
-            />
+            <div className="strategy-name-container">
+              <p className="strategy-name-label">Strategy Name:</p>
+
+              <input
+                type="text"
+                className="strategy-name-input"
+                placeholder="Enter Strategy Name"
+                value={strategyName}
+                onChange={(e) => setStrategyName(e.target.value)}
+              />
+            </div>
 
             <div className="popup-actions">
 
-              <button onClick={() => setShowPopup(false)}>
+              <button className="popup-btn" onClick={() => setShowPopup(false)}>
                 Cancel
               </button>
 
-              <button onClick={saveStrategy}>
+              <button className="popup-btn" onClick={saveStrategy}>
+                Done
+              </button>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      )}
+
+      {isEditingName && (
+
+        <div className="popup-overlay">
+
+          <div className="popup">
+
+            <div className="popup-header">
+              <h3 className="popup-header-name">Edit Strategy Name</h3>
+              <span className="popup-close-tag" onClick={() => setIsEditingName(false)}>✕</span>
+            </div>
+
+            <hr />
+
+            <div className="strategy-name-container">
+              <p className="strategy-name-label">Strategy Name:</p>
+              <input
+                type="text"
+                className="strategy-name-input"
+                placeholder="Enter Strategy Name"
+                value={editedName}
+                onChange={(e) => setEditedName(e.target.value)}
+              />
+            </div>
+
+            <div className="popup-actions">
+
+              <button className="popup-btn" onClick={() => setIsEditingName(false)}>
+                Cancel
+              </button>
+
+              <button className="popup-btn" onClick={saveStrategyName}>
                 Done
               </button>
 

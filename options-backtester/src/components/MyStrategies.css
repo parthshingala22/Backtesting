@@ -1,0 +1,162 @@
+.strategies-page {
+  max-width: 800px;
+  margin: 40px auto;
+  padding: 0 20px;
+}
+
+.strategies-header {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 25px;
+}
+
+.strategies-header h2 {
+  margin: 0;
+  color: #2c3e50;
+}
+
+.strategies-count {
+  background: #3498db;
+  color: white;
+  padding: 3px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: bold;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 3px 12px rgba(0,0,0,0.08);
+}
+
+.empty-icon {
+  font-size: 60px;
+  margin-bottom: 15px;
+}
+
+.empty-state h3 {
+  color: #2c3e50;
+  margin-bottom: 8px;
+}
+
+.empty-state p {
+  color: #888;
+  margin-bottom: 20px;
+}
+
+.go-backtest-btn {
+  width: auto;
+  padding: 10px 25px;
+  background: #3498db;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  margin-top: 0;
+}
+
+.go-backtest-btn:hover {
+  background: #2980b9;
+}
+
+.strategies-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.strategy-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: white;
+  border: 1px solid #e8edf2;
+  border-radius: 12px;
+  padding: 18px 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  transition: box-shadow 0.2s;
+}
+
+.strategy-card:hover {
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+}
+
+.strategy-card-left {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  cursor: pointer;
+  flex: 1;
+}
+
+.strategy-icon {
+  font-size: 30px;
+  background: #eaf3fb;
+  padding: 10px;
+  border-radius: 10px;
+}
+
+.strategy-name {
+  font-size: 16px;
+  color: #2c3e50;
+  display: block;
+  margin-bottom: 6px;
+}
+
+.strategy-meta {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.strategy-meta span {
+  font-size: 12px;
+  color: #888;
+  background: #f4f6fb;
+  padding: 3px 8px;
+  border-radius: 5px;
+}
+
+.strategy-card-right {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.load-btn {
+  width: auto;
+  padding: 8px 18px;
+  margin-top: 0;
+  background: #2ecc71;
+  color: white;
+  border: none;
+  border-radius: 7px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.load-btn:hover {
+  background: #27ae60;
+}
+
+.delete-btn {
+  width: auto;
+  padding: 8px 14px;
+  margin-top: 0;
+  background: white;
+  color: #e74c3c;
+  border: 1px solid #e74c3c;
+  border-radius: 7px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.delete-btn:hover {
+  background: #e74c3c;
+  color: white;
+}

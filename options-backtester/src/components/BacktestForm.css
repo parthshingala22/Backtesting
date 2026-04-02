@@ -16,7 +16,7 @@ body {
   text-align: center;
   margin-bottom: 30px;
   color: #2c3e50;
-}
+}   
 
 h3 {
   margin-top: 25px;
@@ -340,14 +340,14 @@ button:hover {
 
 
 .run-btn {
-  width: 150px;
+  width: auto;
   padding: 12px;
   margin-top: 0px;
   background: #1fb15c;
   border: none;
   color: white;
   font-size: 16px;
-  border-radius: 8px;
+  border-radius: 3px;
   cursor: pointer;
 }
 
@@ -359,18 +359,20 @@ button:hover {
 
 
 .save-btn {
-  width: 200px;
+  width: auto;
   padding: 12px;
   margin-top: 0px;
-  background: #34495e;
-  color: white;
+  background: white;
+  color: #34495e;
   font-size: 16px;
-  border-radius: 8px;
+  border-radius: 3px;
   cursor: pointer;
+  border: 1px solid #34495e;
 }
 
 .save-btn:hover {
-  background: #2c3e50;
+  background: #34495e;
+  color: white;
 }
 
 
@@ -397,10 +399,164 @@ button:hover {
 .popup-header {
   display: flex;
   justify-content: space-between;
+  align-items: center;
 }
 
+.popup-header-name{
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
+.popup-close-tag {
+  cursor: pointer;
+}
+
+.strategy-name-container {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.strategy-name-label{
+  display: flex;
+  align-items: center;
+  margin-bottom: 5px;
+  font-size: 14px;
+}
+
+.strategy-name-input{
+  width: auto;
+  margin-top: 0px;
+
+}
 .popup-actions {
   display: flex;
+  gap: 5px;
   justify-content: space-between;
   margin-top: 20px;
 }
+
+.popup-btn{
+  margin-top: 0px;
+  background: #34495e;
+  color: white;
+  font-size: 16px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.popup-btn:hover {
+  background: #2c3e50;
+} 
+
+
+.saveas-btn {
+  width: auto;
+  padding: 12px;
+  margin-top: 0px;
+  background: white;
+  color: #34495e;
+  font-size: 16px;
+  border-radius: 3px;
+  cursor: pointer;
+  border: 1px solid #34495e;
+}
+
+.saveas-btn:hover {
+  background: #34495e;
+  color: white;
+}
+
+.loaded-strategy-bar {
+  margin: 0px auto 0px auto;
+  padding: 12px 20px;
+  background: white;
+  border: 1px solid #d1d3d7;
+  display: flex;
+  align-items: center;
+}
+
+.strategy-name-display {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.loaded-label {
+  font-size: 13px;
+  color: #666;
+}
+
+.loaded-name {
+  font-size: 16px;
+  font-weight: bold;
+  color: #1e4d72;
+}
+
+.name-edit-btn {
+  width: auto;
+  margin-top: 0;
+  padding: 6px 14px;
+  background: white;
+  color: #1e4d72;
+  border: 1px solid #1e4d72;
+  border-radius: 6px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.name-edit-btn:hover {
+  background: #1e4d72;
+  color: white;
+}
+
+/* .strategy-name-edit {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+
+.strategy-name-edit-input {
+  flex: 1;
+  padding: 7px 12px;
+  border: 1px solid #3498db;
+  border-radius: 6px;
+  font-size: 15px;
+  margin: 0;
+  width: auto;
+}
+
+.name-save-btn {
+  width: auto;
+  margin-top: 0;
+  padding: 7px 16px;
+  background: #2ecc71;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.name-save-btn:hover {
+  background: #27ae60;
+}
+
+.name-cancel-btn {
+  width: auto;
+  margin-top: 0;
+  padding: 7px 14px;
+  background: white;
+  color: #e74c3c;
+  border: 1px solid #e74c3c;
+  border-radius: 6px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.name-cancel-btn:hover {
+  background: #e74c3c;
+  color: white;
+} */
