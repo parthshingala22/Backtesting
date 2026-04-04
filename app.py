@@ -18,7 +18,6 @@ from flask_jwt_extended import (
 )
 
 def backtest(start_date, end_date, index_name, interval, sl_in_pct, target_in_pct,exit_time,indicators,input_entry_time,quantity,strike_criteria,premium):
-# def backtest(start_date, end_date, index_name, interval, sl_in_pct, target_in_pct,exit_time,indicators,entry_start_time,entry_end_time,quantity,strike_criteria,premium):
     
     base_path = Path("../data")
     results = []
@@ -52,7 +51,6 @@ def backtest(start_date, end_date, index_name, interval, sl_in_pct, target_in_pc
     cash_list = []
     call_list = []
     put_list = []
-    # date_list = []
 
     for folder_date, cash_path in files:
 
@@ -121,7 +119,6 @@ def backtest(start_date, end_date, index_name, interval, sl_in_pct, target_in_pc
         #     day_put.to_csv("day_put.csv")
 
         entry_time = entry_time_and_signal_symbol(day_cash, indicators, input_entry_time)
-        # entry_time = entry_time_and_signal_symbol(cash_data, indicators, entry_start_time, entry_end_time)
 
         if entry_time is None:
             continue
@@ -149,6 +146,7 @@ def backtest(start_date, end_date, index_name, interval, sl_in_pct, target_in_pc
         result_row = {
             "Date": int(row["date"]),
             "Symbol": str(symbol_result),
+            # "Symbol": str(row["symbol"]),
             "Buy_Price": float(row["buy_price"]),
             "Stop_Loss": float(row["stop_loss"]),
             "Sell_Price": float(row["sell_price"]),
@@ -275,34 +273,14 @@ def run_backtest():
     exit_time = data.get("exit_time")
     indicators = data.get("indicators")
     input_entry_time = hhmm_to_seconds(data.get("entry_time"))
-    # entry_start_time = hhmm_to_seconds(data.get("entry_start_time"))
-    # entry_end_time = hhmm_to_seconds(data.get("entry_end_time"))
     quantity = int(data.get("quantity"))
     strike_criteria = data.get("strike_criteria")
-    premium = int(data.get("premium"))
+    premium = int(data.get("premium") or 0)
 
     result = backtest(start_date, end_date, index, interval, sl_in_pct, target_in_pct, exit_time, indicators, input_entry_time, quantity,strike_criteria,premium)
-    # result = backtest(
-    #     start_date,
-    #     end_date,
-    #     index,
-    #     interval,
-    #     sl_in_pct,
-    #     target_in_pct,
-    #     exit_time,
-    #     indicators,
-    #     entry_start_time,
-    #     entry_end_time,
-    #     quantity,
-    #     strike_criteria,
-    #     premium
-    # )
+
     return jsonify(result)
 
 if __name__ == "__main__":
     app.run(debug=True, port=5000)
-
-
-
-
 

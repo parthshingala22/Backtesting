@@ -33,6 +33,8 @@ def match_atm_options(option_df, cash_df, symbol_col_name):
 
 
 
+
+
 def match_premium_options(option_df, cash_df, symbol_col_name, target_premium):
 
     merged_df = option_df.merge(
@@ -93,45 +95,6 @@ def entry_time_and_signal_symbol(cash_data, indicators, input_entry_time):
     return None
 
 
-# def entry_time_and_signal_symbol(cash_data, indicators, entry_start_time, entry_end_time):
-#     cash_data = cash_data[(cash_data["time"] >= entry_start_time) & (cash_data["time"] <= entry_end_time)]
-
-#     for _, row in cash_data.iterrows():
-
-#         if not indicators:
-#             # row = cash_data[cash_data["time"] == entry_start_time].iloc[0]
-#             return row["time"]
-
-#         pattern = row["pattern"]
-#         rsi = row["rsi"]
-
-#         if "bullish_n_bearish_engulfing" in indicators and "rsi" in indicators:
-#             # if (row["time"] >= entry_start_time) & (row["time"] <= entry_end_time):
-#                 if pd.notna(rsi):
-
-#                     if pattern == "Bullish Engulfing" and rsi >= 70:
-#                         return row["time"]
-
-#                     elif pattern == "Bearish Engulfing" and rsi <= 30:
-#                         return row["time"]
-
-#         elif "bullish_n_bearish_engulfing" in indicators:
-#             # if (row["time"] >= entry_start_time) & (row["time"] <= entry_end_time):
-
-#                 if pattern in ["Bullish Engulfing", "Bearish Engulfing"]:
-#                     return row["time"]
-
-#         elif "rsi" in indicators:
-#             # if (row["time"] >= entry_start_time) & (row["time"] <= entry_end_time):
-
-#                 if pd.notna(rsi) and (rsi >= 70 or rsi <= 30):
-#                     return row["time"]
-#     return None
-
-
-
-
-
 def symbol(cash_data, entry,indicators):
 
     row = cash_data[cash_data["time"] == entry].iloc[0]
@@ -161,31 +124,6 @@ def symbol(cash_data, entry,indicators):
 
     elif not indicators:
         symbol = row["new_symbol_call"]
-
-    # if "bullish_n_bearish_engulfing" in indicators and "rsi" in indicators:
-
-    #     if row["pattern"] == "Bullish Engulfing" and row["rsi"] >= 70:
-    #         symbol = row["new_symbol_put"]
-
-    #     elif row["pattern"] == "Bearish Engulfing" and row["rsi"] <= 30:
-    #         symbol = row["new_symbol_call"]
-
-    # elif "bullish_n_bearish_engulfing" in indicators:
-
-    #     if row["pattern"] == "Bullish Engulfing":
-    #         symbol = row["new_symbol_put"]
-    #     elif row["pattern"] == "Bearish Engulfing":
-    #         symbol = row["new_symbol_call"]
-
-    # elif "rsi" in indicators:
-
-    #     if row["rsi"] >= 70:
-    #         symbol = row["new_symbol_put"]
-    #     elif row["rsi"] <= 30:
-    #         symbol = row["new_symbol_call"]
-
-    # elif not indicators:
-    #     symbol = row["new_symbol_call"]
     
     return symbol
 
@@ -210,6 +148,8 @@ def buy_call_and_put(cash_data, new_data_put, new_data_call, entry_time, symbol_
     target_price = round(buy_price * (1 + (target / 100)), 2)
 
     mask = cash_data["time"] == entry_time
+
+    # cash_data.loc[mask, "symbol"] = entry_row["symbol"].iloc[0]
 
     cash_data.loc[mask, "signal_buy/sell"] = "Buy"
     cash_data.loc[mask, "buy_price"] = buy_price
@@ -295,7 +235,6 @@ def profit_loss(cash_data,entry_time,quantity):
     ] = pnl
 
     return cash_data
-
 
 
 

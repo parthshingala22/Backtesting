@@ -49,6 +49,20 @@ function BacktestForm({ pendingForm, loadedStrategy, setLoadedStrategy }) {
     target_in_pct: 20,
     quantity: 10
   })
+  const [toast, setToast] = useState({
+    show: false,
+    message: "",
+    type: "success" 
+  })
+
+
+  const showToast = (message, type = "success") => {
+    setToast({ show: true, message, type })
+
+    setTimeout(() => {
+      setToast({ show: false, message: "", type: "success" })
+    }, 3000)
+  }
 
   useEffect(() => {
     if (pendingForm) {
@@ -61,7 +75,7 @@ function BacktestForm({ pendingForm, loadedStrategy, setLoadedStrategy }) {
 
   const saveStrategyName = () => {
     if (!editedName.trim()) {
-      alert("Strategy name cannot be empty")
+      showToast("Strategy name cannot be empty")
       return
     }
 
@@ -88,11 +102,10 @@ function BacktestForm({ pendingForm, loadedStrategy, setLoadedStrategy }) {
       formData: form
     }
     localStorage.setItem("strategies", JSON.stringify(existing))
-    alert("Strategy updated!")
+    showToast("Strategy updated successfully")
   }
 
   const saveAsNew = () => {
-    setLoadedStrategy(null)
     setShowPopup(true)
   }
 
@@ -179,7 +192,7 @@ function BacktestForm({ pendingForm, loadedStrategy, setLoadedStrategy }) {
   const saveStrategy = () => {
 
     if (!strategyName) {
-      alert("Enter strategy name")
+      showToast("Enter strategy name")
       return
     }
 
@@ -194,12 +207,11 @@ function BacktestForm({ pendingForm, loadedStrategy, setLoadedStrategy }) {
       "strategies",
       JSON.stringify([...existing, newStrategy])
     )
+    showToast("Strategy saved successfully")
 
     setShowPopup(false)
     setStrategyName("")
   }
-
-
 
   const totalTrades = results.length
 
@@ -438,7 +450,7 @@ function BacktestForm({ pendingForm, loadedStrategy, setLoadedStrategy }) {
           <h3>📊 Market Settings</h3>
 
           <h6>Index</h6>
-          <select name="index" value={form.index} onCha nge={handleChange}>
+          <select name="index" value={form.index} onChange={handleChange}>
             <option>NIFTY</option>
             <option>BANKNIFTY</option>
             <option>MCX</option>
@@ -681,6 +693,7 @@ function BacktestForm({ pendingForm, loadedStrategy, setLoadedStrategy }) {
 
                 <thead>
                   <tr>
+                    <th>Index</th>
                     <th>Date</th>
                     <th>Symbol</th>
                     <th>Entry</th>
@@ -697,7 +710,7 @@ function BacktestForm({ pendingForm, loadedStrategy, setLoadedStrategy }) {
                   {currentTrades.map((trade, index) => (
 
                     <tr key={index}>
-
+                      <td>{indexOfFirstTrade + index + 1}</td>
                       <td>{trade.Date}</td>
                       <td>{trade.Symbol}</td>
                       <td>{trade.Entry_Time}</td>
@@ -885,11 +898,16 @@ function BacktestForm({ pendingForm, loadedStrategy, setLoadedStrategy }) {
 
       )}
 
+      {toast.show && (
+        <div className={`toast ${toast.type}`}>
+          <span>{toast.message}</span>
+          <button onClick={() => setToast({ ...toast, show: false })}>✕</button>
+        </div>
+      )}
+
     </div>
 
-
   )
-
 
 }
 
