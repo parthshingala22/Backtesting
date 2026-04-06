@@ -8,14 +8,31 @@ import BacktestForm from "./components/BacktestForm"
 import Header from "./components/Header"
 import MyStrategies from "./components/MyStrategies"
 
+// const defaultForm = {
+//   start_date: 220101,
+//   end_date: 220131,
+//   index: "NIFTY",
+//   interval: "1min",
+//   indicators: [],
+//   entry_time: "09:15",
+//   exit_time: "10:15",
+//   strike_mode: "Strike Type",
+//   strike_criteria: "ATM",
+//   premium: null,
+//   stop_loss_in_pct: 10,
+//   target_in_pct: 20,
+//   quantity: 10
+// }
+
 const defaultForm = {
   start_date: 220101,
   end_date: 220131,
   index: "NIFTY",
   interval: "1min",
   indicators: [],
-  entry_time: "09:15",
-  exit_time: "10:15",
+  entry_start_time: "09:15",   // ← renamed
+  entry_end_time: "10:15",     // ← new
+  exit_time: "11:00",
   strike_mode: "Strike Type",
   strike_criteria: "ATM",
   premium: null,

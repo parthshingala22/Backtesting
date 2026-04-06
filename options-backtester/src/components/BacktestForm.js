@@ -34,14 +34,31 @@ function BacktestForm({ pendingForm, loadedStrategy, setLoadedStrategy }) {
   const [startPage, setStartPage] = useState(1)
   const [isEditingName, setIsEditingName] = useState(false)
   const [editedName, setEditedName] = useState("")
+  // const [form, setForm] = useState({
+  //   start_date: 220101,
+  //   end_date: 220131,
+  //   index: "NIFTY",
+  //   interval: "1min",
+  //   indicators: [],
+  //   entry_time: "09:15",
+  //   exit_time: "10:15",
+  //   strike_mode: "Strike Type",
+  //   strike_criteria: "ATM",
+  //   premium: null,
+  //   stop_loss_in_pct: 10,
+  //   target_in_pct: 20,
+  //   quantity: 10
+  // })
+
   const [form, setForm] = useState({
     start_date: 220101,
     end_date: 220131,
     index: "NIFTY",
     interval: "1min",
     indicators: [],
-    entry_time: "09:15",
-    exit_time: "10:15",
+    entry_start_time: "09:15",   // ← renamed
+    entry_end_time: "10:15",     // ← new
+    exit_time: "11:00",          // ← renamed for clarity
     strike_mode: "Strike Type",
     strike_criteria: "ATM",
     premium: null,
@@ -49,6 +66,7 @@ function BacktestForm({ pendingForm, loadedStrategy, setLoadedStrategy }) {
     target_in_pct: 20,
     quantity: 10
   })
+
   const [toast, setToast] = useState({
     show: false,
     message: "",
@@ -541,7 +559,7 @@ function BacktestForm({ pendingForm, loadedStrategy, setLoadedStrategy }) {
 
 
 
-          <h3>⏰ Trade Entry</h3>
+          {/* <h3>⏰ Trade Entry</h3>
 
           <div className="time-row">
 
@@ -551,6 +569,43 @@ function BacktestForm({ pendingForm, loadedStrategy, setLoadedStrategy }) {
                 type="time"
                 name="entry_time"
                 value={form.entry_time}
+                onChange={handleChange}
+              />
+            </div>
+
+            <div>
+              <h6>Exit Time</h6>
+              <input
+                type="time"
+                name="exit_time"
+                value={form.exit_time}
+                onChange={handleChange}
+              />
+            </div>
+
+          </div> */}
+
+          {/* Replace the ⏰ Trade Entry section in your JSX */}
+          <h3>⏰ Trade Entry</h3>
+
+          <div className="time-row">
+
+            <div>
+              <h6>Entry Start Time</h6>
+              <input
+                type="time"
+                name="entry_start_time"
+                value={form.entry_start_time}
+                onChange={handleChange}
+              />
+            </div>
+
+            <div>
+              <h6>Entry End Time</h6>
+              <input
+                type="time"
+                name="entry_end_time"
+                value={form.entry_end_time}
                 onChange={handleChange}
               />
             </div>

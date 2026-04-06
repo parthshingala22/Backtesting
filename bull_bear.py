@@ -35,40 +35,77 @@ def match_premium_options(option_df, cash_df,target_premium):
     return result_df
 
     
-def entry_time_and_signal_symbol(cash_data, indicators, input_entry_time):
+# def entry_time_and_signal_symbol(cash_data, indicators, input_entry_time):
     
-    # cash_data = cash_data[(cash_data["time"] >= 33300) & (cash_data["time"] <= 35100)]
+#     # cash_data = cash_data[(cash_data["time"] >= 33300) & (cash_data["time"] <= 35100)]
 
-    for _, row in cash_data.iterrows():
+#     for _, row in cash_data.iterrows():
 
+#         if not indicators:
+#             row = cash_data[cash_data["time"] == input_entry_time].iloc[0]
+#             return row["time"]
+
+#         pattern = row["pattern"]
+#         rsi = row["rsi"]
+
+#         if "bullish_n_bearish_engulfing" in indicators and "rsi" in indicators:
+#             if row["time"] >= input_entry_time:
+#                 if pd.notna(rsi):
+
+#                     if pattern == "Bullish Engulfing" and rsi >= 70:
+#                         return row["time"]
+
+#                     elif pattern == "Bearish Engulfing" and rsi <= 30:
+#                         return row["time"]
+
+#         elif "bullish_n_bearish_engulfing" in indicators:
+#             if row["time"] >= input_entry_time:
+
+#                 if pattern in ["Bullish Engulfing", "Bearish Engulfing"]:
+#                     return row["time"]
+
+#         elif "rsi" in indicators:
+#             if row["time"] >= input_entry_time:
+
+#                 if pd.notna(rsi) and (rsi >= 70 or rsi <= 30):
+#                     return row["time"]
+#     return None
+
+
+def entry_time_and_signal_symbol(cash_data, indicators, input_entry_start_time, input_entry_end_time):
+
+    # ✅ Only look at candles between entry_start_time and entry_end_time
+    window = cash_data[
+        (cash_data["time"] >= input_entry_start_time) &
+        (cash_data["time"] <= input_entry_end_time)
+    ]
+
+
+    for _, row in window.iterrows():
+
+        # No indicators — take first candle in the window
         if not indicators:
-            row = cash_data[cash_data["time"] == input_entry_time].iloc[0]
             return row["time"]
 
         pattern = row["pattern"]
-        rsi = row["rsi"]
+        rsi_val = row["rsi"]
 
         if "bullish_n_bearish_engulfing" in indicators and "rsi" in indicators:
-            if row["time"] >= input_entry_time:
-                if pd.notna(rsi):
-
-                    if pattern == "Bullish Engulfing" and rsi >= 70:
-                        return row["time"]
-
-                    elif pattern == "Bearish Engulfing" and rsi <= 30:
-                        return row["time"]
+            if pd.notna(rsi_val):
+                if pattern == "Bullish Engulfing" and rsi_val >= 70:
+                    return row["time"]
+                elif pattern == "Bearish Engulfing" and rsi_val <= 30:
+                    return row["time"]
 
         elif "bullish_n_bearish_engulfing" in indicators:
-            if row["time"] >= input_entry_time:
-
-                if pattern in ["Bullish Engulfing", "Bearish Engulfing"]:
-                    return row["time"]
+            if pattern in ["Bullish Engulfing", "Bearish Engulfing"]:
+                return row["time"]
 
         elif "rsi" in indicators:
-            if row["time"] >= input_entry_time:
+            if pd.notna(rsi_val) and (rsi_val >= 70 or rsi_val <= 30):
+                return row["time"]
 
-                if pd.notna(rsi) and (rsi >= 70 or rsi <= 30):
-                    return row["time"]
+    # ✅ No signal found in the window → skip this day
     return None
 
 

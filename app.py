@@ -18,7 +18,10 @@ from flask_jwt_extended import (
     get_jwt_identity
 )
 
-def backtest(start_date, end_date, index_name, interval, sl_in_pct, target_in_pct,exit_time,indicators,input_entry_time,quantity,strike_criteria,premium):
+# def backtest(start_date, end_date, index_name, interval, sl_in_pct, target_in_pct,exit_time,indicators,input_entry_time,quantity,strike_criteria,premium):
+def backtest(start_date, end_date, index_name, interval, sl_in_pct, target_in_pct,
+             exit_time, indicators, input_entry_start_time, input_entry_end_time,   # ← updated
+             quantity, strike_criteria, premium):
     
     base_path = Path("../data")
     results = []
@@ -124,7 +127,12 @@ def backtest(start_date, end_date, index_name, interval, sl_in_pct, target_in_pc
         #     day_call.to_csv("day_call.csv")
         #     day_put.to_csv("day_put.csv")
 
-        entry_time = entry_time_and_signal_symbol(day_cash, indicators, input_entry_time)
+        # entry_time = entry_time_and_signal_symbol(day_cash, indicators, input_entry_time)
+        entry_time = entry_time_and_signal_symbol(
+            day_cash, indicators,
+            input_entry_start_time, input_entry_end_time   # ← updated
+        )
+
 
         if entry_time is None:
             continue
@@ -349,6 +357,29 @@ def delete_strategy(strategy_id):
     return jsonify({"success": True})
 
 
+# @app.route("/backtest", methods=["POST","GET"])
+# @jwt_required()
+# def run_backtest():
+
+#     data = request.get_json()
+
+#     start_date = int(data.get("start_date"))
+#     end_date = int(data.get("end_date"))
+#     index = data.get("index")
+#     interval = data.get("interval")
+#     sl_in_pct = int(data.get("stop_loss_in_pct"))
+#     target_in_pct = int(data.get("target_in_pct"))
+#     exit_time = data.get("exit_time")
+#     indicators = data.get("indicators")
+#     input_entry_time = hhmm_to_seconds(data.get("entry_time"))
+#     quantity = int(data.get("quantity"))
+#     strike_criteria = data.get("strike_criteria")
+#     premium = int(data.get("premium") or 0)
+
+#     result = backtest(start_date, end_date, index, interval, sl_in_pct, target_in_pct, exit_time, indicators, input_entry_time, quantity,strike_criteria,premium)
+
+#     return jsonify(result)
+
 @app.route("/backtest", methods=["POST","GET"])
 @jwt_required()
 def run_backtest():
@@ -363,12 +394,18 @@ def run_backtest():
     target_in_pct = int(data.get("target_in_pct"))
     exit_time = data.get("exit_time")
     indicators = data.get("indicators")
-    input_entry_time = hhmm_to_seconds(data.get("entry_time"))
+    input_entry_start_time = hhmm_to_seconds(data.get("entry_start_time"))  # ← renamed
+    input_entry_end_time = hhmm_to_seconds(data.get("entry_end_time"))      # ← new
     quantity = int(data.get("quantity"))
     strike_criteria = data.get("strike_criteria")
     premium = int(data.get("premium") or 0)
 
-    result = backtest(start_date, end_date, index, interval, sl_in_pct, target_in_pct, exit_time, indicators, input_entry_time, quantity,strike_criteria,premium)
+    result = backtest(
+        start_date, end_date, index, interval,
+        sl_in_pct, target_in_pct, exit_time, indicators,
+        input_entry_start_time, input_entry_end_time,   # ← updated
+        quantity, strike_criteria, premium
+    )
 
     return jsonify(result)
 
