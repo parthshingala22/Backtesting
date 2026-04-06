@@ -1,5 +1,6 @@
 import pandas as pd
 import sqlite3
+import json
 from datetime import datetime
 from flask import Flask,request,jsonify
 from flask_cors import CORS
@@ -95,17 +96,22 @@ def backtest(start_date, end_date, index_name, interval, sl_in_pct, target_in_pc
 
     if strike_criteria == "ATM":
 
-        new_data_call = match_atm_options(call_data, cash_data, "new_symbol_call")
-        new_data_put  = match_atm_options(put_data, cash_data, "new_symbol_put")
+        # new_data_call = match_atm_options(call_data, cash_data, "new_symbol_call")
+        # new_data_put  = match_atm_options(put_data, cash_data, "new_symbol_put")
+        new_data_call = match_atm_options(call_data, cash_data)
+        new_data_put  = match_atm_options(put_data, cash_data)
+
 
     elif strike_criteria == "premium":
 
-        new_data_call = match_premium_options(call_data, cash_data, "new_symbol_call", premium)
-        new_data_put  = match_premium_options(put_data, cash_data, "new_symbol_put", premium)
+        # new_data_call = match_premium_options(call_data, cash_data, "new_symbol_call", premium)
+        # new_data_put  = match_premium_options(put_data, cash_data, "new_symbol_put", premium)
+        new_data_call = match_premium_options(call_data, cash_data, premium)
+        new_data_put  = match_premium_options(put_data, cash_data, premium)
 
-    # new_data_call.to_csv("new_data_call.csv")
-    # new_data_put.to_csv("new_data_put.csv")
-    # cash_data.to_csv("cash.csv")
+    new_data_call.to_csv("new_data_call.csv")
+    new_data_put.to_csv("new_data_put.csv")
+    cash_data.to_csv("cash.csv")
     
     for date in cash_data["date"].unique():
 
@@ -145,15 +151,15 @@ def backtest(start_date, end_date, index_name, interval, sl_in_pct, target_in_pc
 
         result_row = {
             "Date": int(row["date"]),
-            "Symbol": str(symbol_result),
-            # "Symbol": str(row["symbol"]),
+            # "Symbol": str(symbol_result),
+            "Symbol": str(row["symbol"]),
             "Buy_Price": float(row["buy_price"]),
             "Stop_Loss": float(row["stop_loss"]),
             "Sell_Price": float(row["sell_price"]),
             "Entry_Time": row["entry_time"],
             "Exit_Time": row["exit_time"],
             "Exit_Reason": str(row["exit_reason"]),
-            "Profit_n_Loss": float(row["profit_n_loss"]),
+            "Profit_n_Loss": float(row["profit_n_loss"]),   
         }
 
         if "bullish_n_bearish_engulfing" in indicators and "rsi" in indicators:
@@ -256,6 +262,91 @@ def register():
             "success": False,
             "message": "Username already exists"
         })
+    
+
+@app.route("/strategies", methods=["GET"])
+@jwt_required()
+def get_strategies():
+    username = get_jwt_identity()
+    conn = sqlite3.connect("database.db")
+    cursor = conn.cursor()
+    cursor.execute(
+        "SELECT id, name, form_data, created_at FROM strategies WHERE username = ? ORDER BY created_at DESC",
+        (username,)
+    )
+    rows = cursor.fetchall()
+    conn.close()
+
+    strategies = [
+        {
+            "id": row[0],
+            "name": row[1],
+            "formData": json.loads(row[2]),
+            "created_at": row[3]
+        }
+        for row in rows
+    ]
+    return jsonify(strategies)
+
+
+@app.route("/strategies", methods=["POST"])
+@jwt_required()
+def save_strategy():
+    username = get_jwt_identity()
+    data = request.get_json()
+    name = data.get("name")
+    form_data = data.get("formData")
+
+    if not name or not form_data:
+        return jsonify({"success": False, "message": "Missing name or formData"}), 400
+
+    conn = sqlite3.connect("database.db")
+    cursor = conn.cursor()
+    cursor.execute(
+        "INSERT INTO strategies (username, name, form_data) VALUES (?, ?, ?)",
+        (username, name, json.dumps(form_data))
+    )
+    strategy_id = cursor.lastrowid
+    conn.commit()
+    conn.close()
+
+    return jsonify({"success": True, "id": strategy_id})
+
+
+@app.route("/strategies/<int:strategy_id>", methods=["PUT"])
+@jwt_required()
+def update_strategy(strategy_id):
+    username = get_jwt_identity()
+    data = request.get_json()
+    name = data.get("name")
+    form_data = data.get("formData")
+
+    conn = sqlite3.connect("database.db")
+    cursor = conn.cursor()
+    cursor.execute(
+        "UPDATE strategies SET name = ?, form_data = ? WHERE id = ? AND username = ?",
+        (name, json.dumps(form_data), strategy_id, username)
+    )
+    conn.commit()
+    conn.close()
+
+    return jsonify({"success": True})
+
+
+@app.route("/strategies/<int:strategy_id>", methods=["DELETE"])
+@jwt_required()
+def delete_strategy(strategy_id):
+    username = get_jwt_identity()
+    conn = sqlite3.connect("database.db")
+    cursor = conn.cursor()
+    cursor.execute(
+        "DELETE FROM strategies WHERE id = ? AND username = ?",
+        (strategy_id, username)
+    )
+    conn.commit()
+    conn.close()
+
+    return jsonify({"success": True})
 
 
 @app.route("/backtest", methods=["POST","GET"])

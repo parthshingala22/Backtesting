@@ -1,27 +1,61 @@
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useState, useCallback } from "react"
 import { useNavigate } from "react-router-dom"
 import "./MyStrategies.css"
 
 function MyStrategies({ setForm, setLoadedStrategy }) {
 
   const [strategies, setStrategies] = useState([])
+  const [loading, setLoading] = useState(true)
   const navigate = useNavigate()
+  const token = sessionStorage.getItem("token")
+
+  const fetchStrategies = useCallback(async () => {
+    try {
+      setLoading(true)
+      const response = await fetch("http://localhost:5000/strategies", {
+        headers: {
+          "Authorization": `Bearer ${token}`
+        }
+      })
+      const data = await response.json()
+      setStrategies(data)
+    } catch (error) {
+      console.error("Failed to load strategies:", error)
+    } finally {
+      setLoading(false)
+    }
+  }, [token]) 
 
   useEffect(() => {
-    const data = JSON.parse(localStorage.getItem("strategies")) || []
-    setStrategies(data)
-  }, [])
+    fetchStrategies()
+  }, [fetchStrategies])
 
-  const loadStrategy = (strategy, index) => {
+  const loadStrategy = (strategy) => {
     setForm(strategy.formData)
-    setLoadedStrategy({ name: strategy.name, index })
+    setLoadedStrategy({ name: strategy.name, id: strategy.id })
     navigate("/backtest")
   }
 
-  const deleteStrategy = (index) => {
-    const updated = strategies.filter((_, i) => i !== index)
-    setStrategies(updated)
-    localStorage.setItem("strategies", JSON.stringify(updated))
+  const deleteStrategy = async (id) => {
+    try {
+      await fetch(`http://localhost:5000/strategies/${id}`, {
+        method: "DELETE",
+        headers: {
+          "Authorization": `Bearer ${token}`
+        }
+      })
+      setStrategies(strategies.filter(s => s.id !== id))
+    } catch (error) {
+      console.error("Failed to delete strategy:", error)
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="strategies-page">
+        <p>Loading strategies...</p>
+      </div>
+    )
   }
 
   return (
@@ -46,12 +80,10 @@ function MyStrategies({ setForm, setLoadedStrategy }) {
       ) : (
 
         <div className="strategies-list">
+          {strategies.map((s) => (
+            <div className="strategy-card" key={s.id}>
 
-          {strategies.map((s, index) => (
-
-            <div className="strategy-card" key={index}>
-
-              <div className="strategy-card-left" onClick={() => loadStrategy(s, index)}>
+              <div className="strategy-card-left" onClick={() => loadStrategy(s)}>
                 <div className="strategy-icon">📈</div>
                 <div className="strategy-info">
                   <strong className="strategy-name">{s.name}</strong>
@@ -64,24 +96,16 @@ function MyStrategies({ setForm, setLoadedStrategy }) {
               </div>
 
               <div className="strategy-card-right">
-                <button
-                  className="load-btn"
-                  onClick={() => loadStrategy(s, index)}
-                >
+                <button className="load-btn" onClick={() => loadStrategy(s)}>
                   Load
                 </button>
-                <button
-                  className="delete-btn"
-                  onClick={() => deleteStrategy(index)}
-                >
+                <button className="delete-btn" onClick={() => deleteStrategy(s.id)}>
                   🗑 Delete
                 </button>
               </div>
 
             </div>
-
           ))}
-
         </div>
 
       )}

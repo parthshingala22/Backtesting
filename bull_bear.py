@@ -1,8 +1,7 @@
 import pandas as pd
 from Common.time import seconds_to_hhmm
 
-
-def match_atm_options(option_df, cash_df, symbol_col_name):
+def match_atm_options(option_df, cash_df):
 
     cash_df["ATM"] = ((cash_df["close"] / 100).round() * 100).astype(int)
 
@@ -12,30 +11,12 @@ def match_atm_options(option_df, cash_df, symbol_col_name):
         how="left"
     )
 
-    cash_df[symbol_col_name] = (
-        option_df["prefix"]
-        + cash_df["ATM"].astype(str)
-        + option_df["option_type"]
-    )
+    option_df = option_df[option_df["strike"] == option_df["ATM"]]
 
-    option_df.drop(columns=["prefix", "option_type", "ATM"], inplace=True)
-
-    new_df = option_df.merge(
-        cash_df[["date", "time", symbol_col_name]],
-        left_on=["date", "time", "symbol"],
-        right_on=["date", "time", symbol_col_name],
-        how="inner"
-    )
-
-    new_df.drop(columns=symbol_col_name, inplace=True)
-
-    return new_df
+    return option_df
 
 
-
-
-
-def match_premium_options(option_df, cash_df, symbol_col_name, target_premium):
+def match_premium_options(option_df, cash_df,target_premium):
 
     merged_df = option_df.merge(
         cash_df[["date", "time"]],
@@ -48,10 +29,6 @@ def match_premium_options(option_df, cash_df, symbol_col_name, target_premium):
     idx = merged_df.groupby(["date", "time"])["premium_diff"].idxmin()
 
     result_df = merged_df.loc[idx].copy()
-
-    symbol_map = result_df.set_index(["date", "time"])["symbol"]
-
-    cash_df[symbol_col_name] = cash_df.set_index(["date", "time"]).index.map(symbol_map)
 
     result_df.drop(columns=["premium_diff"], inplace=True)
 
@@ -103,34 +80,34 @@ def symbol(cash_data, entry,indicators):
     if "bullish_n_bearish_engulfing" in indicators and "rsi" in indicators:
 
         if row["pattern"] == "Bullish Engulfing" and row["rsi"] >= 70:
-            symbol = row["new_symbol_call"]
+            symbol = "CE"
 
         elif row["pattern"] == "Bearish Engulfing" and row["rsi"] <= 30:
-            symbol = row["new_symbol_put"]
+            symbol = "PE"
 
     elif "bullish_n_bearish_engulfing" in indicators:
 
         if row["pattern"] == "Bullish Engulfing":
-            symbol = row["new_symbol_call"]
+            symbol = "CE"
         elif row["pattern"] == "Bearish Engulfing":
-            symbol = row["new_symbol_put"]
+            symbol = "PE"
 
     elif "rsi" in indicators:
 
         if row["rsi"] >= 70:
-            symbol = row["new_symbol_call"]
+            symbol = "CE"
         elif row["rsi"] <= 30:
-            symbol = row["new_symbol_put"]
+            symbol = "PE"
 
     elif not indicators:
-        symbol = row["new_symbol_call"]
+        symbol = "CE"
     
     return symbol
 
 
 def buy_call_and_put(cash_data, new_data_put, new_data_call, entry_time, symbol_result, stop_loss, target):
 
-    if "CE" in symbol_result:
+    if "CE" == symbol_result:
         option_df = new_data_call
     else:
         option_df = new_data_put
@@ -140,7 +117,6 @@ def buy_call_and_put(cash_data, new_data_put, new_data_call, entry_time, symbol_
 
     if entry_row.empty:
         return cash_data, None, None, None
-        # return cash_data
 
     buy_price = entry_row["open"].iloc[0]
 
@@ -149,8 +125,7 @@ def buy_call_and_put(cash_data, new_data_put, new_data_call, entry_time, symbol_
 
     mask = cash_data["time"] == entry_time
 
-    # cash_data.loc[mask, "symbol"] = entry_row["symbol"].iloc[0]
-
+    cash_data.loc[mask, "symbol"] = entry_row["symbol"].iloc[0]
     cash_data.loc[mask, "signal_buy/sell"] = "Buy"
     cash_data.loc[mask, "buy_price"] = buy_price
     cash_data.loc[mask, "stop_loss"] = stop_loss_price
@@ -159,14 +134,13 @@ def buy_call_and_put(cash_data, new_data_put, new_data_call, entry_time, symbol_
     return cash_data
 
 
-
 def sell_trade(cash_data,new_data_put,new_data_call,symbol,entry_time,exit_time):
     
     row = cash_data[cash_data["time"] == entry_time].iloc[0]
     sell_price = None
     exit_reason = None
 
-    if "CE" in symbol:
+    if "CE" == symbol:
         option_df = new_data_call.copy()
     else:
         option_df = new_data_put.copy()

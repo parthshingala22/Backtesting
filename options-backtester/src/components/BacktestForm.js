@@ -52,7 +52,7 @@ function BacktestForm({ pendingForm, loadedStrategy, setLoadedStrategy }) {
   const [toast, setToast] = useState({
     show: false,
     message: "",
-    type: "success" 
+    type: "success"
   })
 
 
@@ -64,6 +64,7 @@ function BacktestForm({ pendingForm, loadedStrategy, setLoadedStrategy }) {
     }, 3000)
   }
 
+
   useEffect(() => {
     if (pendingForm) {
       setForm(pendingForm)
@@ -73,35 +74,50 @@ function BacktestForm({ pendingForm, loadedStrategy, setLoadedStrategy }) {
     }
   }, [pendingForm, loadedStrategy])
 
-  const saveStrategyName = () => {
+
+  const saveStrategyName = async () => {
     if (!editedName.trim()) {
-      showToast("Strategy name cannot be empty")
+      showToast("Strategy name cannot be empty", "error")
       return
     }
 
-    const existing = JSON.parse(localStorage.getItem("strategies")) || []
-    existing[loadedStrategy.index] = {
-      ...existing[loadedStrategy.index],
-      name: editedName.trim()
-    }
-    localStorage.setItem("strategies", JSON.stringify(existing))
+    const token = sessionStorage.getItem("token")
+
+    await fetch(`http://localhost:5000/strategies/${loadedStrategy.id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        name: editedName.trim(),
+        formData: form
+      })
+    })
 
     setLoadedStrategy({ ...loadedStrategy, name: editedName.trim() })
-
     setIsEditingName(false)
+    showToast("Strategy name updated")
   }
 
 
-
-  const updateStrategy = () => {
+  const updateStrategy = async () => {
     if (!loadedStrategy) return
 
-    const existing = JSON.parse(localStorage.getItem("strategies")) || []
-    existing[loadedStrategy.index] = {
-      name: loadedStrategy.name,
-      formData: form
-    }
-    localStorage.setItem("strategies", JSON.stringify(existing))
+    const token = sessionStorage.getItem("token")
+
+    await fetch(`http://localhost:5000/strategies/${loadedStrategy.id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        name: loadedStrategy.name,
+        formData: form
+      })
+    })
+
     showToast("Strategy updated successfully")
   }
 
@@ -189,28 +205,33 @@ function BacktestForm({ pendingForm, loadedStrategy, setLoadedStrategy }) {
 
   }
 
-  const saveStrategy = () => {
-
+  const saveStrategy = async () => {
     if (!strategyName) {
-      showToast("Enter strategy name")
+      showToast("Enter strategy name", "error")
       return
     }
 
-    const existing = JSON.parse(localStorage.getItem("strategies")) || []
+    const token = sessionStorage.getItem("token")
 
-    const newStrategy = {
-      name: strategyName,
-      formData: form
+    const response = await fetch("http://localhost:5000/strategies", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        name: strategyName,
+        formData: form
+      })
+    })
+
+    const data = await response.json()
+
+    if (data.success) {
+      showToast("Strategy saved successfully")
+      setShowPopup(false)
+      setStrategyName("")
     }
-
-    localStorage.setItem(
-      "strategies",
-      JSON.stringify([...existing, newStrategy])
-    )
-    showToast("Strategy saved successfully")
-
-    setShowPopup(false)
-    setStrategyName("")
   }
 
   const totalTrades = results.length

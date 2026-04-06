@@ -25,10 +25,6 @@ def load_option_data(path,index_name):
         regex=True
     )
 
-    pattern = rf'^({index_name}\d{{6}})'
-    df["prefix"] = df["symbol"].str.extract(pattern)
-    df["option_type"] = df["symbol"].str.extract(r'(CE|PE)$')
-
     return df
 
 
