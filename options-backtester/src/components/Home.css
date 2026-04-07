@@ -1,0 +1,45 @@
+.home-container {
+  padding: 30px;
+}
+
+.home-hero {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  padding: 40px;
+  border-radius: 12px;
+  text-align: center;
+}
+
+.home-hero h1 {
+  margin-bottom: 10px;
+}
+
+.home-buttons {
+  margin-top: 20px;
+}
+
+.home-buttons button {
+  margin: 10px;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  background: white;
+  color: #333;
+  font-weight: bold;
+}
+
+.home-features {
+  display: flex;
+  gap: 20px;
+  margin-top: 40px;
+}
+
+.feature-card {
+  flex: 1;
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+  text-align: center;
+}

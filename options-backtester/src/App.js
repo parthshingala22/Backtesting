@@ -7,6 +7,7 @@ import Register from "./components/Register"
 import BacktestForm from "./components/BacktestForm"
 import Header from "./components/Header"
 import MyStrategies from "./components/MyStrategies"
+import Home from "./components/Home";
 
 // const defaultForm = {
 //   start_date: 220101,
@@ -52,11 +53,11 @@ function App() {
 
   const handleLogout = () => {
     sessionStorage.removeItem("token")
-    sessionStorage.removeItem("first_name")   
-    sessionStorage.removeItem("last_name")    
+    sessionStorage.removeItem("first_name")
+    sessionStorage.removeItem("last_name")
     setLoggedIn(false)
-    setLoadedStrategy(null)       
-    setPendingForm(defaultForm)   
+    setLoadedStrategy(null)
+    setPendingForm(defaultForm)
   }
 
   const PrivateRoute = ({ children }) => {
@@ -65,7 +66,7 @@ function App() {
 
   return (
     <div>
-      {loggedIn && <Header onLogout={handleLogout} />} 
+      {loggedIn && <Header onLogout={handleLogout} />}
 
       <Routes>
         <Route path="/" element={
@@ -76,7 +77,7 @@ function App() {
 
         <Route path="/home" element={
           <PrivateRoute>
-            <h2 style={{ padding: "30px" }}>🏠 Home Page</h2>
+            <Home />
           </PrivateRoute>
         } />
 
