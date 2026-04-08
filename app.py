@@ -153,7 +153,7 @@ def backtest(start_date, end_date, index_name, interval, sl_in_pct, target_in_pc
         sell_trade(day_cash, day_put, day_call,
                 symbol_result, entry_time, exit_time_result)
 
-        profit_loss(day_cash, entry_time, quantity)
+        profit_loss(day_cash, entry_time, quantity, index_upper)
 
         row = day_cash[day_cash["time"] == entry_time].iloc[0]
 

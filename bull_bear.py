@@ -233,10 +233,16 @@ def sell_trade(cash_data,new_data_put,new_data_call,symbol,entry_time,exit_time)
 
 
 
-def profit_loss(cash_data,entry_time,quantity):
+def profit_loss(cash_data,entry_time,quantity,index_upper):
 
     row = cash_data[cash_data["time"] == entry_time].iloc[0]
     result = row["sell_price"] - row["buy_price"]
+
+    if index_upper == "NIFTY":
+        result = result * 75
+    if index_upper == "BANKNIFTY":
+        result = result * 30
+
 
     pnl = round((result * quantity),2)
 

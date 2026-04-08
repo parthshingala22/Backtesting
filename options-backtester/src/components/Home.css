@@ -3,7 +3,8 @@
 }
 
 .home-hero {
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  /* background: linear-gradient(135deg, #667eea, #764ba2); */
+  background: linear-gradient(135deg, #3498db, #1e4d72);
   color: white;
   padding: 40px;
   border-radius: 12px;
