@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import "./BacktestForm.css";
+import Chatbot from "./Chatbot";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -55,31 +56,32 @@ function FormRow({ label, info, children }) {
 
 function BacktestForm({ pendingForm, loadedStrategy, setLoadedStrategy }) {
 
-  const [showPopup,     setShowPopup]     = useState(false);
-  const [strategyName,  setStrategyName]  = useState("");
-  const [loading,       setLoading]       = useState(false);
-  const [results,       setResults]       = useState([]);
-  const [currentPage,   setCurrentPage]   = useState(1);
-  const [startPage,     setStartPage]     = useState(1);
+  const [showPopup, setShowPopup] = useState(false);
+  const [strategyName, setStrategyName] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [results, setResults] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [startPage, setStartPage] = useState(1);
   const [isEditingName, setIsEditingName] = useState(false);
-  const [editedName,    setEditedName]    = useState("");
-  const [toast,         setToast]         = useState({ show: false, message: "", type: "success" });
+  const [editedName, setEditedName] = useState("");
+  const [toast, setToast] = useState({ show: false, message: "", type: "success" });
+  const [chatOpen, setChatOpen] = useState(false);
 
   const [form, setForm] = useState({
-    start_date:       220101,
-    end_date:         220131,
-    index:            "NIFTY",
-    interval:         "1min",
-    indicators:       [],
+    start_date: 220101,
+    end_date: 220131,
+    index: "NIFTY",
+    interval: "1min",
+    indicators: [],
     entry_start_time: "09:15",
-    entry_end_time:   "10:15",
-    exit_time:        "11:00",
-    strike_mode:      "Strike Type",
-    strike_criteria:  "ATM",
-    premium:          null,
+    entry_end_time: "10:15",
+    exit_time: "11:00",
+    strike_mode: "Strike Type",
+    strike_criteria: "ATM",
+    premium: null,
     stop_loss_in_pct: 10,
-    target_in_pct:    20,
-    quantity:         10
+    target_in_pct: 20,
+    quantity: 10
   });
 
   const showToast = (message, type = "success") => {
@@ -88,7 +90,7 @@ function BacktestForm({ pendingForm, loadedStrategy, setLoadedStrategy }) {
   };
 
   useEffect(() => {
-    if (pendingForm)    setForm(pendingForm);
+    if (pendingForm) setForm(pendingForm);
     if (loadedStrategy) setEditedName(loadedStrategy.name);
   }, [pendingForm, loadedStrategy]);
 
@@ -110,6 +112,33 @@ function BacktestForm({ pendingForm, loadedStrategy, setLoadedStrategy }) {
     }
     if (type === "number") value = Number(value);
     setForm({ ...form, [name]: value });
+  };
+
+  const handleRunBacktestFromChat = async (suggestedParams) => {
+    // Apply the AI-suggested params to the form state
+    setForm(suggestedParams);
+    // Close the chatbot so the user can see the results
+    setChatOpen(false);
+    // Slight delay so the form state update is flushed, then run
+    setTimeout(async () => {
+      try {
+        setLoading(true);
+        const payload = { ...suggestedParams };
+        delete payload.strike_mode;   // backend doesn't use this field
+        const token = sessionStorage.getItem("token");
+        const response = await fetch("http://localhost:5000/backtest", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+          body: JSON.stringify(payload),
+        });
+        const data = await response.json();
+        setResults(data);
+      } catch (error) {
+        console.error("Backtest from chat failed:", error);
+      } finally {
+        setLoading(false);
+      }
+    }, 50);
   };
 
   const runBacktest = async () => {
@@ -175,21 +204,21 @@ function BacktestForm({ pendingForm, loadedStrategy, setLoadedStrategy }) {
   const downloadReport = () => {
     if (!results.length) { alert("No report available"); return; }
     const cols = ["Date", "Symbol", "Buy_Price", "Sell_Price", "Entry_Time", "Exit_Time", "Profit_n_Loss", "Exit_Reason"];
-    const csv  = [cols.join(","), ...results.map(r => cols.map(c => r[c]).join(","))].join("\n");
-    const a    = document.createElement("a");
-    a.href     = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
+    const csv = [cols.join(","), ...results.map(r => cols.map(c => r[c]).join(","))].join("\n");
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
     a.download = "backtest_report.csv";
     a.click();
   };
 
-  // ── Stats ──────────────────────────────────────
-  const totalTrades  = results.length;
-  const winTrades    = results.filter(t => t.Profit_n_Loss > 0).length;
-  const lossTrades   = results.filter(t => t.Profit_n_Loss <= 0).length;
-  const totalPnL     = results.reduce((s, t) => s + t.Profit_n_Loss, 0);
-  const winRate      = totalTrades ? ((winTrades / totalTrades) * 100).toFixed(2) : 0;
-  const grossProfit  = results.filter(t => t.Profit_n_Loss > 0).reduce((s, t) => s + t.Profit_n_Loss, 0);
-  const grossLoss    = results.filter(t => t.Profit_n_Loss < 0).reduce((s, t) => s + Math.abs(t.Profit_n_Loss), 0);
+
+  const totalTrades = results.length;
+  const winTrades = results.filter(t => t.Profit_n_Loss > 0).length;
+  const lossTrades = results.filter(t => t.Profit_n_Loss <= 0).length;
+  const totalPnL = results.reduce((s, t) => s + t.Profit_n_Loss, 0);
+  const winRate = totalTrades ? ((winTrades / totalTrades) * 100).toFixed(2) : 0;
+  const grossProfit = results.filter(t => t.Profit_n_Loss > 0).reduce((s, t) => s + t.Profit_n_Loss, 0);
+  const grossLoss = results.filter(t => t.Profit_n_Loss < 0).reduce((s, t) => s + Math.abs(t.Profit_n_Loss), 0);
   const profitFactor = grossLoss ? (grossProfit / grossLoss).toFixed(2) : 0;
 
   let equity = 0, peak = 0, maxDrawdown = 0;
@@ -200,29 +229,27 @@ function BacktestForm({ pendingForm, loadedStrategy, setLoadedStrategy }) {
     if (dd > maxDrawdown) maxDrawdown = dd;
   });
 
-  // ── Equity chart ───────────────────────────────
   let eq1 = 0;
   const equityData = results.map(t => { eq1 += Number(t.Profit_n_Loss); return eq1; });
-  const chartData  = {
-    labels:   results.map((_, i) => i + 1),
+  const chartData = {
+    labels: results.map((_, i) => i + 1),
     datasets: [{
-      label:           "Equity Curve",
-      data:            equityData,
-      borderColor:     "#1e4d72",
+      label: "Equity Curve",
+      data: equityData,
+      borderColor: "#1e4d72",
       backgroundColor: "rgba(30,77,114,0.1)",
-      tension:         0.3,
-      pointRadius:     2
+      tension: 0.3,
+      pointRadius: 2
     }]
   };
 
-  // ── Pagination ─────────────────────────────────
-  const tradesPerPage     = 10;
-  const visiblePages      = 5;
-  const indexOfLastTrade  = currentPage * tradesPerPage;
+  const tradesPerPage = 10;
+  const visiblePages = 5;
+  const indexOfLastTrade = currentPage * tradesPerPage;
   const indexOfFirstTrade = indexOfLastTrade - tradesPerPage;
-  const currentTrades     = results.slice(indexOfFirstTrade, indexOfLastTrade);
-  const totalPages        = Math.ceil(results.length / tradesPerPage);
-  const pageNumbers       = [];
+  const currentTrades = results.slice(indexOfFirstTrade, indexOfLastTrade);
+  const totalPages = Math.ceil(results.length / tradesPerPage);
+  const pageNumbers = [];
   for (let i = startPage; i < startPage + visiblePages && i <= totalPages; i++) pageNumbers.push(i);
 
   const goNextPage = () => {
@@ -238,21 +265,20 @@ function BacktestForm({ pendingForm, loadedStrategy, setLoadedStrategy }) {
     }
   };
   const goFirst = () => { setCurrentPage(1); setStartPage(1); };
-  const goLast  = () => {
+  const goLast = () => {
     const lastStart = Math.max(totalPages - visiblePages + 1, 1);
     setCurrentPage(totalPages);
     setStartPage(lastStart);
   };
 
   const popups = [
-    { show: showPopup,     title: "Save New Strategy",  name: strategyName, setName: setStrategyName, onClose: () => setShowPopup(false),     onDone: saveStrategy     },
-    { show: isEditingName, title: "Edit Strategy Name", name: editedName,   setName: setEditedName,   onClose: () => setIsEditingName(false), onDone: saveStrategyName },
+    { show: showPopup, title: "Save New Strategy", name: strategyName, setName: setStrategyName, onClose: () => setShowPopup(false), onDone: saveStrategy },
+    { show: isEditingName, title: "Edit Strategy Name", name: editedName, setName: setEditedName, onClose: () => setIsEditingName(false), onDone: saveStrategyName },
   ];
 
   return (
     <div className="bf-root">
 
-      {/* Loaded strategy bar */}
       {loadedStrategy && (
         <div className="loaded-strategy-bar">
           <div className="strategy-name-display">
@@ -267,7 +293,6 @@ function BacktestForm({ pendingForm, loadedStrategy, setLoadedStrategy }) {
         </div>
       )}
 
-      {/* Loading overlay */}
       {loading && (
         <div className="loading-overlay">
           <div className="spinner" />
@@ -311,10 +336,8 @@ function BacktestForm({ pendingForm, loadedStrategy, setLoadedStrategy }) {
           </div>
         </div>
 
-        {/* Two-column panels */}
         <div className="panels-grid">
 
-          {/* LEFT column */}
           <div className="panels-col">
 
             <SectionPanel title="Instrument settings">
@@ -336,9 +359,9 @@ function BacktestForm({ pendingForm, loadedStrategy, setLoadedStrategy }) {
                     const v = e.target.value;
                     setForm({
                       ...form,
-                      strike_mode:     v,
+                      strike_mode: v,
                       strike_criteria: v === "Strike Type" ? "ATM" : "premium",
-                      premium:         v === "Premium Based" ? 250 : null
+                      premium: v === "Premium Based" ? 250 : null
                     });
                   }}
                   className="field-select"
@@ -388,7 +411,6 @@ function BacktestForm({ pendingForm, loadedStrategy, setLoadedStrategy }) {
 
           </div>
 
-          {/* RIGHT column */}
           <div className="panels-col">
 
             <SectionPanel title="Entry settings">
@@ -437,7 +459,6 @@ function BacktestForm({ pendingForm, loadedStrategy, setLoadedStrategy }) {
 
         </div>
 
-        {/* Backtest results */}
         {results.length > 0 && (
           <>
             <div className="report-chart-container">
@@ -445,13 +466,13 @@ function BacktestForm({ pendingForm, loadedStrategy, setLoadedStrategy }) {
               <div className="strategy-report">
                 <h2 className="report-title">Strategy Report</h2>
                 {[
-                  { label: "Total PnL",     value: `₹ ${totalPnL.toFixed(2)}`,    cls: totalPnL >= 0 ? "profit" : "loss" },
-                  { label: "Total Trades",  value: totalTrades },
-                  { label: "Win Trades",    value: winTrades,                      cls: "profit" },
-                  { label: "Loss Trades",   value: lossTrades,                     cls: "loss"   },
-                  { label: "Win Rate",      value: `${winRate}%` },
+                  { label: "Total PnL", value: `₹ ${totalPnL.toFixed(2)}`, cls: totalPnL >= 0 ? "profit" : "loss" },
+                  { label: "Total Trades", value: totalTrades },
+                  { label: "Win Trades", value: winTrades, cls: "profit" },
+                  { label: "Loss Trades", value: lossTrades, cls: "loss" },
+                  { label: "Win Rate", value: `${winRate}%` },
                   { label: "Profit Factor", value: profitFactor },
-                  { label: "Max Drawdown",  value: `₹ ${maxDrawdown.toFixed(2)}`, cls: "loss"   },
+                  { label: "Max Drawdown", value: `₹ ${maxDrawdown.toFixed(2)}`, cls: "loss" },
                 ].map(({ label, value, cls }) => (
                   <div className="report-row" key={label}>
                     <span>{label}</span>
@@ -466,7 +487,7 @@ function BacktestForm({ pendingForm, loadedStrategy, setLoadedStrategy }) {
                   data={chartData}
                   options={{
                     plugins: { legend: { display: false } },
-                    scales:  { x: { display: false } }
+                    scales: { x: { display: false } }
                   }}
                 />
               </div>
@@ -526,22 +547,25 @@ function BacktestForm({ pendingForm, loadedStrategy, setLoadedStrategy }) {
 
       </div>
 
-      {/* Sticky footer */}
       <div className="footer">
         <div className="footer-btn">
           {loadedStrategy ? (
             <>
-              <button className="save-btn"   onClick={updateStrategy}>💾 Update Strategy</button>
+              <button className="save-btn" onClick={updateStrategy}>💾 Update Strategy</button>
               <button className="saveas-btn" onClick={() => setShowPopup(true)}>➕ Save as New</button>
             </>
           ) : (
             <button className="save-btn" onClick={() => setShowPopup(true)}>💾 Save Strategy</button>
           )}
+
+          <button className="chatbot-trigger-btn" onClick={() => setChatOpen(true)}>
+            🤖 AI Assistant
+          </button>
+
           <button className="run-btn" onClick={runBacktest}>🚀 Run Backtest</button>
         </div>
       </div>
 
-      {/* Popups */}
       {popups.map(({ show, title, name, setName, onClose, onDone }, idx) =>
         show ? (
           <div className="popup-overlay" key={idx}>
@@ -570,13 +594,19 @@ function BacktestForm({ pendingForm, loadedStrategy, setLoadedStrategy }) {
         ) : null
       )}
 
-      {/* Toast */}
       {toast.show && (
         <div className={`toast ${toast.type}`}>
           <span>{toast.message}</span>
           <button onClick={() => setToast({ ...toast, show: false })}>✕</button>
         </div>
       )}
+
+      <Chatbot
+        isOpen={chatOpen}
+        onClose={() => setChatOpen(false)}
+        backtestResults={results}
+        form={form}
+      />
 
     </div>
   );

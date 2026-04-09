@@ -11,6 +11,7 @@ from Common.load_cash_data import load_cash_data
 from Common.indicators import rsi,bullish_n_bearish
 from Common.candle_diff_pct import candle_diff_pct
 from bull_bear import match_atm_options,entry_time_and_signal_symbol,buy_call_and_put,sell_trade,profit_loss,symbol,match_premium_options
+from LLM.chatbot import chatbot_bp
 from flask_jwt_extended import (
     JWTManager,
     create_access_token,
@@ -112,9 +113,9 @@ def backtest(start_date, end_date, index_name, interval, sl_in_pct, target_in_pc
         new_data_call = match_premium_options(call_data, cash_data, premium)
         new_data_put  = match_premium_options(put_data, cash_data, premium)
 
-    new_data_call.to_csv("new_data_call.csv")
-    new_data_put.to_csv("new_data_put.csv")
-    cash_data.to_csv("cash.csv")
+    # new_data_call.to_csv("new_data_call.csv")
+    # new_data_put.to_csv("new_data_put.csv")
+    # cash_data.to_csv("cash.csv")
     
     for date in cash_data["date"].unique():
 
@@ -159,7 +160,6 @@ def backtest(start_date, end_date, index_name, interval, sl_in_pct, target_in_pc
 
         result_row = {
             "Date": int(row["date"]),
-            # "Symbol": str(symbol_result),
             "Symbol": str(row["symbol"]),
             "Buy_Price": float(row["buy_price"]),
             "Stop_Loss": float(row["stop_loss"]),
@@ -188,6 +188,7 @@ def backtest(start_date, end_date, index_name, interval, sl_in_pct, target_in_pc
 
 
 app = Flask(__name__)
+app.register_blueprint(chatbot_bp)
 CORS(app)
 app.config["JWT_SECRET_KEY"] = "super-secret-key"
 jwt = JWTManager(app)
