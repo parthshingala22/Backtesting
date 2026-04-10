@@ -1327,6 +1327,7 @@ body {
 }
 
 
+
 ::-webkit-scrollbar        { width: 7px; height: 5px; }
 ::-webkit-scrollbar-track  { background: #f0f2f5; }
 ::-webkit-scrollbar-thumb  { background: linear-gradient(180deg, #3498db, #1e4d72); border-radius: 4px; }
