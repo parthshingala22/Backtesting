@@ -15,6 +15,38 @@ def match_atm_options(option_df, cash_df):
 
     return option_df
 
+# def match_itm_options(option_df, cash_df, strike_type):
+#     if strike_type == ITM1:
+#         cash_df[strike_type] = (((cash_df["close"] / 100).round() * 100) - 50).astype(int)
+#     elif strike_type == ITM2:
+#         cash_df[strike_type] = (((cash_df["close"] / 100).round() * 100) - 100).astype(int)
+#     elif strike_type == ITM3:
+#         cash_df[strike_type] = (((cash_df["close"] / 100).round() * 100) - 150).astype(int)
+#     elif strike_type == ITM4:
+#         cash_df[strike_type] = (((cash_df["close"] / 100).round() * 100) - 200).astype(int)
+#     elif strike_type == ITM5:
+#         cash_df[strike_type] = (((cash_df["close"] / 100).round() * 100) - 250).astype(int)
+#     elif strike_type == ITM6:
+#         cash_df[strike_type] = (((cash_df["close"] / 100).round() * 100) - 300).astype(int)
+#     elif strike_type == ITM7:
+#         cash_df[strike_type] = (((cash_df["close"] / 100).round() * 100) - 350).astype(int)
+#     elif strike_type == ITM8:
+#         cash_df[strike_type] = (((cash_df["close"] / 100).round() * 100) - 400).astype(int)
+#     elif strike_type == ITM9:
+#         cash_df[strike_type] = (((cash_df["close"] / 100).round() * 100) - 450).astype(int)
+#     elif strike_type == ITM10:
+#         cash_df[strike_type] = (((cash_df["close"] / 100).round() * 100) - 500).astype(int)
+    
+#     option_df = option_df.merge(
+#         cash_df[["date", "time", strike_type]],
+#         on=["date", "time"],
+#         how="left"
+#     )
+
+#     option_df = option_df[option_df["strike"] == option_df[strike_type]]
+
+#     return option_df
+
 
 def match_premium_options(option_df, cash_df,target_premium):
 
