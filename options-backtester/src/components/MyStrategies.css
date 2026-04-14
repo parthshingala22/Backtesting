@@ -196,3 +196,65 @@
 .toast.error {
   background: #e74c3c;
 }
+
+/* ═══════════════════════════════════════════════════════
+   RESPONSIVE — MyStrategies
+   ═══════════════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+  .strategies-page {
+    margin: 20px auto;
+    padding: 0 14px;
+  }
+  .strategies-header h2 {
+    font-size: 18px;
+  }
+  .strategy-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px 16px;
+  }
+  .strategy-card-left {
+    width: 100%;
+  }
+  .strategy-card-right {
+    width: 100%;
+    justify-content: flex-end;
+  }
+  .strategy-meta {
+    gap: 8px;
+  }
+  .load-btn, .delete-btn {
+    font-size: 13px;
+    padding: 7px 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .strategy-meta {
+    flex-direction: column;
+    gap: 5px;
+  }
+  .strategy-meta span {
+    font-size: 11px;
+  }
+  .strategy-icon {
+    font-size: 24px;
+    padding: 8px;
+  }
+  .strategy-name {
+    font-size: 14px;
+  }
+  .empty-state {
+    padding: 40px 16px;
+  }
+  .empty-icon {
+    font-size: 44px;
+  }
+  /* popup full-width on mobile */
+  .popup {
+    width: calc(100vw - 32px);
+    padding: 16px;
+  }
+}

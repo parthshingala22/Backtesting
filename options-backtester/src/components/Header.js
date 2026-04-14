@@ -42,7 +42,8 @@ function Header({ onLogout }) {
     <div className="header">
 
       <div className="logo">
-        Options Backtester
+        {/* Options Backtester */}
+        BacktestPro
       </div>
 
       <div className="nav">

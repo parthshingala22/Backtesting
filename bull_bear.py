@@ -15,37 +15,69 @@ def match_atm_options(option_df, cash_df):
 
     return option_df
 
-# def match_itm_options(option_df, cash_df, strike_type):
-#     if strike_type == ITM1:
-#         cash_df[strike_type] = (((cash_df["close"] / 100).round() * 100) - 50).astype(int)
-#     elif strike_type == ITM2:
-#         cash_df[strike_type] = (((cash_df["close"] / 100).round() * 100) - 100).astype(int)
-#     elif strike_type == ITM3:
-#         cash_df[strike_type] = (((cash_df["close"] / 100).round() * 100) - 150).astype(int)
-#     elif strike_type == ITM4:
-#         cash_df[strike_type] = (((cash_df["close"] / 100).round() * 100) - 200).astype(int)
-#     elif strike_type == ITM5:
-#         cash_df[strike_type] = (((cash_df["close"] / 100).round() * 100) - 250).astype(int)
-#     elif strike_type == ITM6:
-#         cash_df[strike_type] = (((cash_df["close"] / 100).round() * 100) - 300).astype(int)
-#     elif strike_type == ITM7:
-#         cash_df[strike_type] = (((cash_df["close"] / 100).round() * 100) - 350).astype(int)
-#     elif strike_type == ITM8:
-#         cash_df[strike_type] = (((cash_df["close"] / 100).round() * 100) - 400).astype(int)
-#     elif strike_type == ITM9:
-#         cash_df[strike_type] = (((cash_df["close"] / 100).round() * 100) - 450).astype(int)
-#     elif strike_type == ITM10:
-#         cash_df[strike_type] = (((cash_df["close"] / 100).round() * 100) - 500).astype(int)
+def match_itm_options(option_df, cash_df, strike_type):
+    if strike_type == "ITM1":
+        cash_df[strike_type] = (((cash_df["close"] / 100).round() * 100) - 50).astype(int)
+    elif strike_type == "ITM2":
+        cash_df[strike_type] = (((cash_df["close"] / 100).round() * 100) - 100).astype(int)
+    elif strike_type == "ITM3":
+        cash_df[strike_type] = (((cash_df["close"] / 100).round() * 100) - 150).astype(int)
+    elif strike_type == "ITM4":
+        cash_df[strike_type] = (((cash_df["close"] / 100).round() * 100) - 200).astype(int)
+    elif strike_type == "ITM5":
+        cash_df[strike_type] = (((cash_df["close"] / 100).round() * 100) - 250).astype(int)
+    elif strike_type == "ITM6":
+        cash_df[strike_type] = (((cash_df["close"] / 100).round() * 100) - 300).astype(int)
+    elif strike_type == "ITM7":
+        cash_df[strike_type] = (((cash_df["close"] / 100).round() * 100) - 350).astype(int)
+    elif strike_type == "ITM8":
+        cash_df[strike_type] = (((cash_df["close"] / 100).round() * 100) - 400).astype(int)
+    elif strike_type == "ITM9":
+        cash_df[strike_type] = (((cash_df["close"] / 100).round() * 100) - 450).astype(int)
+    elif strike_type == "ITM10":
+        cash_df[strike_type] = (((cash_df["close"] / 100).round() * 100) - 500).astype(int)
     
-#     option_df = option_df.merge(
-#         cash_df[["date", "time", strike_type]],
-#         on=["date", "time"],
-#         how="left"
-#     )
+    option_df = option_df.merge(
+        cash_df[["date", "time", strike_type]],
+        on=["date", "time"],
+        how="left"
+    )
 
-#     option_df = option_df[option_df["strike"] == option_df[strike_type]]
+    option_df = option_df[option_df["strike"] == option_df[strike_type]]
 
-#     return option_df
+    return option_df
+
+def match_otm_options(option_df, cash_df, strike_type):
+    if strike_type == "OTM1":
+        cash_df[strike_type] = (((cash_df["close"] / 100).round() * 100) + 50).astype(int)
+    elif strike_type == "OTM2":
+        cash_df[strike_type] = (((cash_df["close"] / 100).round() * 100) + 100).astype(int)
+    elif strike_type == "OTM3":
+        cash_df[strike_type] = (((cash_df["close"] / 100).round() * 100) + 150).astype(int)
+    elif strike_type == "OTM4":
+        cash_df[strike_type] = (((cash_df["close"] / 100).round() * 100) + 200).astype(int)
+    elif strike_type == "OTM5":
+        cash_df[strike_type] = (((cash_df["close"] / 100).round() * 100) + 250).astype(int)
+    elif strike_type == "OTM6":
+        cash_df[strike_type] = (((cash_df["close"] / 100).round() * 100) + 300).astype(int)
+    elif strike_type == "OTM7":
+        cash_df[strike_type] = (((cash_df["close"] / 100).round() * 100) + 350).astype(int)
+    elif strike_type == "OTM8":
+        cash_df[strike_type] = (((cash_df["close"] / 100).round() * 100) + 400).astype(int)
+    elif strike_type == "OTM9":
+        cash_df[strike_type] = (((cash_df["close"] / 100).round() * 100) + 450).astype(int)
+    elif strike_type == "OTM10":
+        cash_df[strike_type] = (((cash_df["close"] / 100).round() * 100) + 500).astype(int)
+    
+    option_df = option_df.merge(
+        cash_df[["date", "time", strike_type]],
+        on=["date", "time"],
+        how="left"
+    )
+
+    option_df = option_df[option_df["strike"] == option_df[strike_type]]
+
+    return option_df
 
 
 def match_premium_options(option_df, cash_df,target_premium):
@@ -66,47 +98,9 @@ def match_premium_options(option_df, cash_df,target_premium):
 
     return result_df
 
-    
-# def entry_time_and_signal_symbol(cash_data, indicators, input_entry_time):
-    
-#     # cash_data = cash_data[(cash_data["time"] >= 33300) & (cash_data["time"] <= 35100)]
-
-#     for _, row in cash_data.iterrows():
-
-#         if not indicators:
-#             row = cash_data[cash_data["time"] == input_entry_time].iloc[0]
-#             return row["time"]
-
-#         pattern = row["pattern"]
-#         rsi = row["rsi"]
-
-#         if "bullish_n_bearish_engulfing" in indicators and "rsi" in indicators:
-#             if row["time"] >= input_entry_time:
-#                 if pd.notna(rsi):
-
-#                     if pattern == "Bullish Engulfing" and rsi >= 70:
-#                         return row["time"]
-
-#                     elif pattern == "Bearish Engulfing" and rsi <= 30:
-#                         return row["time"]
-
-#         elif "bullish_n_bearish_engulfing" in indicators:
-#             if row["time"] >= input_entry_time:
-
-#                 if pattern in ["Bullish Engulfing", "Bearish Engulfing"]:
-#                     return row["time"]
-
-#         elif "rsi" in indicators:
-#             if row["time"] >= input_entry_time:
-
-#                 if pd.notna(rsi) and (rsi >= 70 or rsi <= 30):
-#                     return row["time"]
-#     return None
-
 
 def entry_time_and_signal_symbol(cash_data, indicators, input_entry_start_time, input_entry_end_time):
 
-    # ✅ Only look at candles between entry_start_time and entry_end_time
     window = cash_data[
         (cash_data["time"] >= input_entry_start_time) &
         (cash_data["time"] <= input_entry_end_time)
@@ -115,7 +109,6 @@ def entry_time_and_signal_symbol(cash_data, indicators, input_entry_start_time, 
 
     for _, row in window.iterrows():
 
-        # No indicators — take first candle in the window
         if not indicators:
             return row["time"]
 
@@ -137,7 +130,6 @@ def entry_time_and_signal_symbol(cash_data, indicators, input_entry_start_time, 
             if pd.notna(rsi_val) and (rsi_val >= 70 or rsi_val <= 30):
                 return row["time"]
 
-    # ✅ No signal found in the window → skip this day
     return None
 
 
