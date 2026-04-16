@@ -10,7 +10,7 @@ from Common.load_option_data import load_option_data
 from Common.load_cash_data import load_cash_data
 from Common.indicators import rsi,bullish_n_bearish
 from Common.candle_diff_pct import candle_diff_pct
-from bull_bear import match_atm_options,entry_time_and_signal_symbol,buy_call_and_put,sell_trade,profit_loss,symbol,match_premium_options
+from bull_bear import match_atm_options,entry_time_and_signal_symbol,buy_call_and_put,sell_trade,profit_loss,symbol,match_premium_options,match_itm_options,match_otm_options
 from LLM.chatbot import chatbot_bp
 from flask_jwt_extended import (
     JWTManager,
@@ -99,18 +99,24 @@ def backtest(start_date, end_date, index_name, interval, sl_in_pct, target_in_pc
 
     if strike_criteria == "ATM":
 
-        # new_data_call = match_atm_options(call_data, cash_data, "new_symbol_call")
-        # new_data_put  = match_atm_options(put_data, cash_data, "new_symbol_put")
         new_data_call = match_atm_options(call_data, cash_data)
         new_data_put  = match_atm_options(put_data, cash_data)
 
 
     elif strike_criteria == "premium":
 
-        # new_data_call = match_premium_options(call_data, cash_data, "new_symbol_call", premium)
-        # new_data_put  = match_premium_options(put_data, cash_data, "new_symbol_put", premium)
         new_data_call = match_premium_options(call_data, cash_data, premium)
         new_data_put  = match_premium_options(put_data, cash_data, premium)
+
+    elif "ITM" in strike_criteria:
+        
+        new_data_call = match_itm_options(call_data, cash_data, strike_criteria)
+        new_data_put  = match_itm_options(put_data, cash_data, strike_criteria)
+    
+    elif "OTM" in strike_criteria:
+
+        new_data_call = match_otm_options(call_data, cash_data, strike_criteria)
+        new_data_put  = match_otm_options(put_data, cash_data, strike_criteria)
 
     # new_data_call.to_csv("new_data_call.csv")
     # new_data_put.to_csv("new_data_put.csv")
@@ -374,10 +380,15 @@ def run_backtest():
     input_entry_start_time = hhmm_to_seconds(data.get("entry_start_time"))
     input_entry_end_time = hhmm_to_seconds(data.get("entry_end_time"))
     quantity = int(data.get("quantity"))
-    strike_criteria = (data.get("strike_criteria") or "ATM").strip().lower()
-    if strike_criteria == "atm":
+
+    strike_criteria = (data.get("strike_criteria") or "ATM").strip()
+    if strike_criteria.upper() == "ATM":
         strike_criteria = "ATM"
+    elif strike_criteria.lower() == "premium":
+        strike_criteria = "premium"
+
     premium = int(data.get("premium") or 0)
+
 
     result = backtest(
         start_date, end_date, index, interval,

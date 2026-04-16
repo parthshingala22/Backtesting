@@ -34,7 +34,11 @@ client     = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
 VALID_INDICES    = ["NIFTY", "BANKNIFTY", "MCX"]
 VALID_INTERVALS  = ["1min", "3min", "5min", "15min"]
-VALID_CRITERIA   = ["ATM", "premium"]
+VALID_CRITERIA   = [
+    "ATM", "premium",
+    "ITM1","ITM2","ITM3","ITM4","ITM5","ITM6","ITM7","ITM8","ITM9","ITM10",
+    "OTM1","OTM2","OTM3","OTM4","OTM5","OTM6","OTM7","OTM8","OTM9","OTM10",
+]
 VALID_INDICATORS = ["rsi", "bullish_n_bearish_engulfing"]
 MAX_HISTORY_TURNS = 12
 
@@ -72,7 +76,8 @@ For RUN intent — ALL fields required:
   index                : "NIFTY" | "BANKNIFTY" | "MCX"
   interval             : "1min" | "3min" | "5min" | "15min"
   entry_start_time, entry_end_time, exit_time : "HH:MM"
-  strike_criteria      : "ATM" | "premium"   ← always lowercase "premium"
+  strike_criteria      : "ATM" | "premium" | "ITM1".."ITM10" | "OTM1".."OTM10"
+                         (premium is always lowercase; ITM/OTM keep their exact casing)
   premium              : integer (REQUIRED when strike_criteria is "premium", e.g. 250)
   stop_loss_in_pct     : number 1-100
   target_in_pct        : number 1-100
@@ -186,14 +191,16 @@ def validate_params(params: dict) -> dict | None:
     if params.get("interval") in VALID_INTERVALS:
         clean["interval"] = params["interval"]
 
-
     sc = params.get("strike_criteria", "")
-    if isinstance(sc, str):
-        sc_lower = sc.lower()
-        if sc_lower == "atm":
+    if isinstance(sc, str) and sc:
+        sc_upper = sc.upper()
+        if sc_upper == "ATM":
             clean["strike_criteria"] = "ATM"
-        elif sc_lower == "premium":
+        elif sc.lower() == "premium":
             clean["strike_criteria"] = "premium"
+        elif sc_upper in [c.upper() for c in VALID_CRITERIA if c.startswith(("ITM","OTM"))]:
+            # Preserve exact casing e.g. "ITM1", "OTM3"
+            clean["strike_criteria"] = sc_upper[:3] + sc[3:]  # "ITM1", "OTM10" etc.
 
 
     if "premium" in params:

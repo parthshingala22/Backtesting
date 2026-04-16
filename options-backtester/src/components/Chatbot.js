@@ -412,7 +412,7 @@ function Chatbot({ isOpen, onClose, backtestResults, form }) {
       const results = await res.json();
 
       setRunCardState(prev => ({ ...prev, [runCardMsgIndex]: "complete" }));
-      setLastRunParams(fullParams); // update baseline for next suggestion diff
+      setLastRunParams(fullParams); 
 
       if (!results.length) {
         setMessages(prev => [...prev, {
@@ -491,7 +491,8 @@ function Chatbot({ isOpen, onClose, backtestResults, form }) {
     const mergedParams = { ...(baseForm || form || {}), ...changes };
 
 
-    if (String(mergedParams.strike_criteria).toLowerCase() === "atm") {
+    const sc = String(mergedParams.strike_criteria || "").toLowerCase();
+    if (sc !== "premium") {
       mergedParams.premium = null;
     }
 

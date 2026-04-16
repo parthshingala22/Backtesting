@@ -78,6 +78,8 @@ function BacktestForm({ pendingForm, loadedStrategy, setLoadedStrategy }) {
     exit_time: "11:00",
     strike_mode: "Strike Type",
     strike_criteria: "ATM",
+    itm_level: "ITM1",
+    otm_level: "OTM1",
     premium: null,
     stop_loss_in_pct: 10,
     target_in_pct: 20,
@@ -115,11 +117,8 @@ function BacktestForm({ pendingForm, loadedStrategy, setLoadedStrategy }) {
   };
 
   const handleRunBacktestFromChat = async (suggestedParams) => {
-    // Apply the AI-suggested params to the form state
     setForm(suggestedParams);
-    // Close the chatbot so the user can see the results
     setChatOpen(false);
-    // Slight delay so the form state update is flushed, then run
     setTimeout(async () => {
       try {
         setLoading(true);
@@ -372,17 +371,59 @@ function BacktestForm({ pendingForm, loadedStrategy, setLoadedStrategy }) {
               </FormRow>
 
               {form.strike_mode === "Strike Type" ? (
-                <FormRow label="Strike Type">
-                  <ToggleGroup
-                    options={[
-                      { value: "ATM", label: "ATM" },
-                      { value: "ITM", label: "ITM" },
-                      { value: "OTM", label: "OTM" }
-                    ]}
-                    value={form.strike_criteria}
-                    onChange={v => setForm({ ...form, strike_criteria: v })}
-                  />
-                </FormRow>
+                <>
+                  <FormRow label="Strike Type">
+                    <ToggleGroup
+                      options={[
+                        { value: "ATM", label: "ATM" },
+                        { value: "ITM", label: "ITM" },
+                        { value: "OTM", label: "OTM" }
+                      ]}
+                      value={
+                        form.strike_criteria === "ATM" ? "ATM"
+                          : form.strike_criteria.startsWith("ITM") ? "ITM"
+                            : "OTM"
+                      }
+                      onChange={v => {
+                        if (v === "ATM") {
+                          setForm({ ...form, strike_criteria: "ATM" });
+                        } else if (v === "ITM") {
+                          setForm({ ...form, strike_criteria: form.itm_level || "ITM1" });
+                        } else {
+                          setForm({ ...form, strike_criteria: form.otm_level || "OTM1" });
+                        }
+                      }}
+                    />
+                  </FormRow>
+
+                  {form.strike_criteria.startsWith("ITM") && (
+                    <FormRow label="ITM Level">
+                      <select
+                        className="field-select"
+                        value={form.strike_criteria}
+                        onChange={e => setForm({ ...form, strike_criteria: e.target.value, itm_level: e.target.value })}
+                      >
+                        {["ITM1", "ITM2", "ITM3", "ITM4", "ITM5", "ITM6", "ITM7", "ITM8", "ITM9", "ITM10"].map(v => (
+                          <option key={v} value={v}>{v}</option>
+                        ))}
+                      </select>
+                    </FormRow>
+                  )}
+
+                  {form.strike_criteria.startsWith("OTM") && (
+                    <FormRow label="OTM Level">
+                      <select
+                        className="field-select"
+                        value={form.strike_criteria}
+                        onChange={e => setForm({ ...form, strike_criteria: e.target.value, otm_level: e.target.value })}
+                      >
+                        {["OTM1", "OTM2", "OTM3", "OTM4", "OTM5", "OTM6", "OTM7", "OTM8", "OTM9", "OTM10"].map(v => (
+                          <option key={v} value={v}>{v}</option>
+                        ))}
+                      </select>
+                    </FormRow>
+                  )}
+                </>
               ) : (
                 <FormRow label="Premium">
                   <input
