@@ -41,9 +41,33 @@ function Header({ onLogout }) {
 
     <div className="header">
 
-      <div className="logo">
-        {/* Options Backtester */}
+      {/* <div className="logo">
         BacktestPro
+      </div> */}
+      <div className="logo">
+        <svg width="760" height="160" viewBox="0 0 560 160" xmlns="http://www.w3.org/2000/svg" style={{ width: "180px", height: "auto", display: "block" }}>
+          <g transform="translate(-120,-30) scale(2.5)">
+            <path d="M15 55 C25 35, 45 35, 55 55 C65 75, 85 75, 75 50 C65 25, 45 25, 35 50 C25 75, 5 75, 15 55"
+              fill="none" stroke="#1a9e5a" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
+            <circle cx="35" cy="50" r="3.5" fill="#ffffff" />
+            <circle cx="75" cy="50" r="3.5" fill="#ffffff" />
+          </g>
+          <text x="120" y="100"
+            font-family="Inter, Segoe UI, Arial"
+            font-size="80"
+            fill="#ffffff"
+            font-weight="700"
+            letter-spacing="1">
+            Backtest<tspan fill="#1a9e5a">Pro</tspan>
+          </text>
+
+          <text x="120" y="150"
+            font-family="Inter, Segoe UI, Arial"
+            font-size="28"
+            fill="rgba(255,255,255,0.7)">
+            Continuous Strategy Optimization
+          </text>
+        </svg>
       </div>
 
       <div className="nav">

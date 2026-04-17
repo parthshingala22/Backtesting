@@ -1,150 +1,8 @@
-/* .login-container {
-  height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background: #f5f5f5;
-}
-
-.login-box {
-  background: #ffffff;
-  padding: 40px 35px;
-  width: 100%;
-  max-width: 380px;
-  border-radius: 8px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-  text-align: center;
-}
-
-.login-box h2 {
-  margin: 0 0 30px 0;
-  color: #1a1a1a;
-  font-size: 24px;
-  font-weight: 600;
-}
-
-.input-group {
-  text-align: left;
-  margin-bottom: 8px;
-}
-
-.login-box input[type="text"],
-.login-box input[type="password"] {
-  width: 100%;
-  padding: 12px 14px;
-  margin: 4px 0;
-  border: 1px solid #d0d0d0;
-  border-radius: 6px;
-  font-size: 14px;
-  transition: border-color 0.2s, box-shadow 0.2s;
-  box-sizing: border-box;
-  background: #fff;
-}
-
-.login-box input[type="text"]:focus,
-.login-box input[type="password"]:focus {
-  outline: none;
-  border-color: #333;
-  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.08);
-}
-
-.login-box input.input-error {
-  border-color: #dc3545;
-  background: #fff8f8;
-}
-
-.login-box input.input-error:focus {
-  box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1);
-}
-
-.field-error {
-  color: #dc3545;
-  font-size: 12px;
-  margin-top: 4px;
-  display: block;
-}
-
-.login-box button[type="submit"] {
-  width: 100%;
-  margin-top: 20px;
-  padding: 12px;
-  background: #1a1a1a;
-  border: none;
-  color: #ffffff;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 15px;
-  font-weight: 500;
-  transition: background 0.2s;
-}
-
-.login-box button[type="submit"]:hover:not(:disabled) {
-  background: #333333;
-}
-
-.login-box button[type="submit"]:active:not(:disabled) {
-  background: #000;
-}
-
-.login-box button[type="submit"].loading {
-  background: #ccc;
-  cursor: not-allowed;
-}
-
-.login-box button[type="submit"]:disabled {
-  cursor: not-allowed;
-  opacity: 0.6;
-}
-
-.register-link {
-  margin-top: 20px;
-  color: #666;
-  font-size: 14px;
-  cursor: pointer;
-  transition: color 0.2s;
-}
-
-.register-link:hover {
-  color: #1a1a1a;
-  text-decoration: underline;
-}
-
-.error-text {
-  color: #dc3545;
-  font-size: 13px;
-  margin-top: 15px;
-  margin-bottom: 15px;
-  padding: 10px 14px;
-  background: #fff8f8;
-  border: 1px solid #ffe5e5;
-  border-radius: 6px;
-}
-
-.success-text {
-  color: #28a745;
-  font-size: 13px;
-  margin-top: 15px;
-  margin-bottom: 15px;
-  padding: 10px 14px;
-  background: #f8fff8;
-  border: 1px solid #e5ffe5;
-  border-radius: 6px;
-}
-
-@media (max-width: 480px) {
-  .login-box {
-    padding: 30px 20px;
-    margin: 20px;
-  }
-} */
-
 
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
 
-/* ── Reset ──────────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-/* ── Page shell ─────────────────────────────────────────────── */
 .auth-page {
   min-height: 100vh;
   display: flex;
@@ -152,7 +10,6 @@
   background: #f0f2f5;
 }
 
-/* ── Left panel — branding ──────────────────────────────────── */
 .auth-left {
   width: 440px;
   flex-shrink: 0;
@@ -165,7 +22,6 @@
   overflow: hidden;
 }
 
-/* decorative circles */
 .auth-left::before {
   content: '';
   position: absolute;
@@ -191,7 +47,7 @@
 .auth-brand-logo {
   display: flex;
   align-items: center;
-  gap: 12px;
+  /* gap: 12px; */
   margin-bottom: 48px;
 }
 
@@ -204,7 +60,7 @@
   font-size: 20px;
 }
 
-.auth-brand-name {
+/* .auth-brand-name {
   font-size: 18px;
   font-weight: 700;
   color: #ffffff;
@@ -215,7 +71,7 @@
   font-size: 13px;
   color: rgba(255,255,255,0.45);
   font-weight: 400;
-}
+} */
 
 .auth-headline {
   color: #ffffff;

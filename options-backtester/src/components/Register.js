@@ -443,7 +443,7 @@ import { useNavigate } from "react-router-dom";
 
 // ── Decorative equity chart SVG (same as Login) ───────────────
 function EquityChart() {
-  const points = [0,18,12,30,22,44,35,28,52,38,68,30,74,50,82,42,100]
+  const points = [0, 18, 12, 30, 22, 44, 35, 28, 52, 38, 68, 30, 74, 50, 82, 42, 100]
     .map((y, i, arr) => {
       const x = (i / (arr.length - 1)) * 340;
       const svgY = 90 - (y / 100) * 80;
@@ -457,8 +457,8 @@ function EquityChart() {
     <svg className="auth-chart-svg" viewBox="0 0 340 90" preserveAspectRatio="none">
       <defs>
         <linearGradient id="chartGradR" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%"   stopColor="#3dc98e" stopOpacity="0.35" />
-          <stop offset="100%" stopColor="#3dc98e" stopOpacity="0"    />
+          <stop offset="0%" stopColor="#3dc98e" stopOpacity="0.35" />
+          <stop offset="100%" stopColor="#3dc98e" stopOpacity="0" />
         </linearGradient>
       </defs>
       <polygon points={areaPoints} fill="url(#chartGradR)" />
@@ -479,12 +479,38 @@ function AuthLeft() {
   return (
     <div className="auth-left">
       <div className="auth-brand">
-        <div className="auth-brand-logo">
+        {/* <div className="auth-brand-logo">
           <div className="auth-brand-icon">📈</div>
           <div>
             <div className="auth-brand-name">BacktestPro</div>
             <div className="auth-brand-tagline">Options Strategy Platform</div>
           </div>
+        </div> */}
+
+        <div className="auth-brand-logo">
+          <svg width="760" height="160" viewBox="0 0 560 160" xmlns="http://www.w3.org/2000/svg" style={{ width: "260px", height: "auto" }}>
+            <g transform="translate(-120,-30) scale(2.5)">
+              <path d="M15 55 C25 35, 45 35, 55 55 C65 75, 85 75, 75 50 C65 25, 45 25, 35 50 C25 75, 5 75, 15 55"
+                fill="none" stroke="#1a9e5a" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
+              <circle cx="35" cy="50" r="3.5" fill="#ffffff" />
+              <circle cx="75" cy="50" r="3.5" fill="#ffffff" />
+            </g>
+            <text x="120" y="100"
+            font-family="Inter, Segoe UI, Arial"
+            font-size="80"
+            fill="#ffffff"
+            font-weight="700"
+            letter-spacing="1">
+            Backtest<tspan fill="#1a9e5a">Pro</tspan>
+          </text>
+
+          <text x="120" y="150"
+            font-family="Inter, Segoe UI, Arial"
+            font-size="28"
+            fill="rgba(255,255,255,0.7)">
+            Continuous Strategy Optimization
+          </text>
+          </svg>
         </div>
 
         <h1 className="auth-headline">
@@ -521,14 +547,14 @@ function AuthLeft() {
 
 // ── Register component ────────────────────────────────────────
 function Register() {
-  const [firstName,   setFirstName]   = useState("");
-  const [middleName,  setMiddleName]  = useState("");
-  const [lastName,    setLastName]    = useState("");
-  const [username,    setUsername]    = useState("");
-  const [password,    setPassword]    = useState("");
-  const [error,       setError]       = useState("");
-  const [success,     setSuccess]     = useState("");
-  const [loading,     setLoading]     = useState(false);
+  const [firstName, setFirstName] = useState("");
+  const [middleName, setMiddleName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const [loading, setLoading] = useState(false);
   const [fieldErrors, setFieldErrors] = useState({});
 
   const navigate = useNavigate();
@@ -551,9 +577,9 @@ function Register() {
 
     const errors = {
       firstName: validate("First Name", firstName),
-      lastName:  validate("Last Name",  lastName),
-      username:  validate("Username",   username),
-      password:  validate("Password",   password),
+      lastName: validate("Last Name", lastName),
+      username: validate("Username", username),
+      password: validate("Password", password),
     };
 
     if (Object.values(errors).some(e => e)) {
@@ -563,13 +589,13 @@ function Register() {
     }
 
     try {
-      const res  = await fetch("http://localhost:5000/register", {
-        method:  "POST",
+      const res = await fetch("http://localhost:5000/register", {
+        method: "POST",
         headers: { "Content-Type": "application/json" },
-        body:    JSON.stringify({
-          first_name:  firstName,
+        body: JSON.stringify({
+          first_name: firstName,
           middle_name: middleName,
-          last_name:   lastName,
+          last_name: lastName,
           username,
           password,
         }),
@@ -677,7 +703,7 @@ function Register() {
               )}
             </div>
 
-            {error   && <div className="auth-alert error">⚠ {error}</div>}
+            {error && <div className="auth-alert error">⚠ {error}</div>}
             {success && <div className="auth-alert success">✓ {success}</div>}
 
             <button
