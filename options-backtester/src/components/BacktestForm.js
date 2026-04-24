@@ -81,9 +81,15 @@ function BacktestForm({ pendingForm, loadedStrategy, setLoadedStrategy }) {
     itm_level: "ITM1",
     otm_level: "OTM1",
     premium: null,
+    // stop_loss_in_pct: 10,
+    // target_in_pct: 20,
+    // quantity: 10
     stop_loss_in_pct: 10,
     target_in_pct: 20,
-    quantity: 10
+    quantity: 10,
+    trailing_sl_enabled: false,
+    trailing_sl_pct: 5,
+    move_pct: 5
   });
 
   const showToast = (message, type = "success") => {
@@ -438,6 +444,18 @@ function BacktestForm({ pendingForm, loadedStrategy, setLoadedStrategy }) {
               )}
             </SectionPanel>
 
+            {/* <SectionPanel title="Risk management">
+              <FormRow label="Stop Loss (%)">
+                <input type="number" name="stop_loss_in_pct" value={form.stop_loss_in_pct} onChange={handleChange} className="field-input small" />
+              </FormRow>
+              <FormRow label="Target (%)">
+                <input type="number" name="target_in_pct" value={form.target_in_pct} onChange={handleChange} className="field-input small" />
+              </FormRow>
+              <FormRow label="Lots">
+                <input type="number" name="quantity" value={form.quantity} onChange={handleChange} className="field-input small" />
+              </FormRow>
+            </SectionPanel> */}
+
             <SectionPanel title="Risk management">
               <FormRow label="Stop Loss (%)">
                 <input type="number" name="stop_loss_in_pct" value={form.stop_loss_in_pct} onChange={handleChange} className="field-input small" />
@@ -448,6 +466,45 @@ function BacktestForm({ pendingForm, loadedStrategy, setLoadedStrategy }) {
               <FormRow label="Lots">
                 <input type="number" name="quantity" value={form.quantity} onChange={handleChange} className="field-input small" />
               </FormRow>
+
+              {/* ── Trailing Stop Loss ── */}
+              <div className="trailing-sl-section">
+                <div className="trailing-sl-header">
+                  <span className="trailing-sl-label">Trailing Stop Loss</span>
+                  <button
+                    type="button"
+                    className={`trailing-toggle ${form.trailing_sl_enabled ? "trailing-toggle-on" : ""}`}
+                    onClick={() => setForm({ ...form, trailing_sl_enabled: !form.trailing_sl_enabled })}
+                  >
+                    <span className="trailing-toggle-knob" />
+                  </button>
+                </div>
+
+                <div className={`trailing-sl-fields ${form.trailing_sl_enabled ? "" : "trailing-sl-disabled"}`}>
+                  <FormRow label="Trail SL (%)" info="Move SL up when price rises by this %">
+                    <input
+                      type="number"
+                      name="trailing_sl_pct"
+                      value={form.trailing_sl_pct}
+                      onChange={handleChange}
+                      className="field-input small"
+                      disabled={!form.trailing_sl_enabled}
+                      min={0.1} step={0.1}
+                    />
+                  </FormRow>
+                  <FormRow label="Move By (%)" info="Amount to shift SL and Target on each trail step">
+                    <input
+                      type="number"
+                      name="move_pct"
+                      value={form.move_pct}
+                      onChange={handleChange}
+                      className="field-input small"
+                      disabled={!form.trailing_sl_enabled}
+                      min={0.1} step={0.1}
+                    />
+                  </FormRow>
+                </div>
+              </div>
             </SectionPanel>
 
           </div>

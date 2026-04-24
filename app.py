@@ -19,9 +19,13 @@ from flask_jwt_extended import (
     get_jwt_identity
 )
 
+# def backtest(start_date, end_date, index_name, interval, sl_in_pct, target_in_pct,
+#              exit_time, indicators, input_entry_start_time, input_entry_end_time,  
+#              quantity, strike_criteria, premium):
+
 def backtest(start_date, end_date, index_name, interval, sl_in_pct, target_in_pct,
              exit_time, indicators, input_entry_start_time, input_entry_end_time,  
-             quantity, strike_criteria, premium):
+             quantity, strike_criteria, premium, trailing_sl_pct=None, move_pct=None):
     
     base_path = Path("../data")
     results = []
@@ -95,7 +99,7 @@ def backtest(start_date, end_date, index_name, interval, sl_in_pct, target_in_pc
 
     cash_data = rsi(cash_data)
     cash_data = bullish_n_bearish(cash_data)
-    cash_data = candle_diff_pct(cash_data)
+    # cash_data = candle_diff_pct(cash_data)
 
     if strike_criteria == "ATM":
 
@@ -156,8 +160,14 @@ def backtest(start_date, end_date, index_name, interval, sl_in_pct, target_in_pc
         buy_call_and_put(day_cash, day_put, day_call,
                         entry_time, symbol_result, sl_in_pct, target_in_pct)
 
+        # sell_trade(day_cash, day_put, day_call,
+        #         symbol_result, entry_time, exit_time_result)
+
+        buy_price_val = float(day_cash[day_cash["time"] == entry_time].iloc[0]["buy_price"])
+
         sell_trade(day_cash, day_put, day_call,
-                symbol_result, entry_time, exit_time_result)
+                symbol_result, entry_time, exit_time_result,
+                buy_price_val, trailing_sl_pct, move_pct)
 
         profit_loss(day_cash, entry_time, quantity, index_upper)
 
@@ -178,14 +188,14 @@ def backtest(start_date, end_date, index_name, interval, sl_in_pct, target_in_pc
         if "bullish_n_bearish_engulfing" in indicators and "rsi" in indicators:
             result_row["Rsi_Value"] = float(row["rsi"])
             result_row["Signal"] = str(row["pattern"])
-            result_row["Candle_diff_pct"] = float(row["candle_diff_pct"])
+            # result_row["Candle_diff_pct"] = float(row["candle_diff_pct"])
 
         if "rsi" in indicators:
             result_row["Rsi_Value"] = float(row["rsi"])
 
         if "bullish_n_bearish_engulfing" in indicators:
             result_row["Signal"] = str(row["pattern"])
-            result_row["Candle_diff_pct"] = float(row["candle_diff_pct"])
+            # result_row["Candle_diff_pct"] = float(row["candle_diff_pct"])
 
         results.append(result_row)
     
@@ -387,14 +397,28 @@ def run_backtest():
     elif strike_criteria.lower() == "premium":
         strike_criteria = "premium"
 
+    # premium = int(data.get("premium") or 0)
+
+
+    # result = backtest(
+    #     start_date, end_date, index, interval,
+    #     sl_in_pct, target_in_pct, exit_time, indicators,
+    #     input_entry_start_time, input_entry_end_time,
+    #     quantity, strike_criteria, premium
+    # )
+
     premium = int(data.get("premium") or 0)
 
+    trailing_sl_enabled = data.get("trailing_sl_enabled", False)
+    trailing_sl_pct = float(data.get("trailing_sl_pct")) if trailing_sl_enabled and data.get("trailing_sl_pct") else None
+    move_pct        = float(data.get("move_pct"))        if trailing_sl_enabled and data.get("move_pct")        else None
 
     result = backtest(
         start_date, end_date, index, interval,
         sl_in_pct, target_in_pct, exit_time, indicators,
         input_entry_start_time, input_entry_end_time,
-        quantity, strike_criteria, premium
+        quantity, strike_criteria, premium,
+        trailing_sl_pct, move_pct
     )
 
     return jsonify(result)

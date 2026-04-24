@@ -583,3 +583,12 @@
     padding: 8px 12px;
   }
 }
+
+/* Trailing SL rows in suggestion/run cards */
+.run-card-row:has(.run-card-label:empty) { display: none; }
+
+/* Green highlight for trailing_sl_enabled = Enabled */
+.suggestion-param-new[data-key="trailing_sl_enabled"] {
+  color: #1a9e5a;
+  font-weight: 700;
+}

@@ -23,20 +23,6 @@ def bullish_n_bearish(data):
 
     data["pattern"] = None
 
-    # bullish = (
-    #     (data["candle_color"] == "Red") &
-    #     (data["next_candle_color"] == "Green") &
-    #     (data["close"] >= data["next_candle_open"]) &
-    #     (data["open"] <= data["next_candle_close"])
-    # )
-
-    # bearish = (
-    #     (data["candle_color"] == "Green") &
-    #     (data["next_candle_color"] == "Red") &
-    #     (data["close"] <= data["next_candle_open"]) &
-    #     (data["open"] >= data["next_candle_close"])
-    # )
-
     bullish = (
         (data["candle_color"] == "Red") &
         (data["next_candle_color"] == "Green") &
@@ -60,8 +46,3 @@ def bullish_n_bearish(data):
 
 
 
-
-
-# data = pd.read_feather("..\\2025\\JAN\\01\\banknifty_cash.feather")
-# rsi(data)
-# print(data.head(20))

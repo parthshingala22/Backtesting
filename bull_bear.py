@@ -195,7 +195,67 @@ def buy_call_and_put(cash_data, new_data_put, new_data_call, entry_time, symbol_
     return cash_data
 
 
-def sell_trade(cash_data,new_data_put,new_data_call,symbol,entry_time,exit_time):
+# def sell_trade(cash_data,new_data_put,new_data_call,symbol,entry_time,exit_time):
+    
+#     row = cash_data[cash_data["time"] == entry_time].iloc[0]
+#     sell_price = None
+#     exit_reason = None
+
+#     if "CE" == symbol:
+#         option_df = new_data_call.copy()
+#     else:
+#         option_df = new_data_put.copy()
+
+
+#     option_df = option_df[option_df["time"] >= entry_time]
+
+#     for i in range(len(option_df)):
+
+#         time = option_df.iloc[i]["time"]
+#         low = option_df.iloc[i]["low"]
+#         high = option_df.iloc[i]["high"]
+
+#         if low <= row["stop_loss"]:
+#             exit_time = time
+#             sell_price = row["stop_loss"]
+#             exit_reason = "Stoploss Hit"
+#             break
+
+#         if high >= row["target"]:
+#             exit_time = time
+#             sell_price = row["target"]
+#             exit_reason = "Target Hit"
+#             break
+
+#         if time >= exit_time:
+#             exit_time = time
+#             sell_price = option_df.iloc[i]["close"]
+#             exit_reason = f"Time Exit {seconds_to_hhmm(exit_time)}"
+#             break
+
+#     cash_data.loc[
+#         (cash_data["time"] == entry_time),
+#         "sell_price"
+#     ] = sell_price
+    
+#     cash_data.loc[
+#         (cash_data["time"] == entry_time),
+#         "entry_time"
+#     ] = seconds_to_hhmm(entry_time)
+
+#     cash_data.loc[
+#         (cash_data["time"] == entry_time),
+#         "exit_time"
+#     ] = seconds_to_hhmm(exit_time)
+
+#     cash_data.loc[
+#         (cash_data["time"] == entry_time),
+#         "exit_reason"
+#     ] = exit_reason
+  
+#     return cash_data
+
+def sell_trade(cash_data,new_data_put,new_data_call,symbol,entry_time,exit_time,buy_price,trailing_stop_loss,move_pct):
     
     row = cash_data[cash_data["time"] == entry_time].iloc[0]
     sell_price = None
@@ -214,7 +274,19 @@ def sell_trade(cash_data,new_data_put,new_data_call,symbol,entry_time,exit_time)
         time = option_df.iloc[i]["time"]
         low = option_df.iloc[i]["low"]
         high = option_df.iloc[i]["high"]
+        
+        if trailing_stop_loss is not None and move_pct is not None:
+            step = buy_price * (trailing_stop_loss / 100)
 
+            if high >= buy_price + step:
+
+                point = buy_price * (move_pct / 100)
+
+                row["stop_loss"] = round(row["stop_loss"] + point, 2)
+                row["target"] = round(row["target"] + point, 2)
+
+                buy_price = buy_price + point  
+        
         if low <= row["stop_loss"]:
             exit_time = time
             sell_price = row["stop_loss"]

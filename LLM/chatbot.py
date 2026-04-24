@@ -1,26 +1,3 @@
-"""
-LLM / chatbot.py — All premium-related bugs fixed.
-
-BUGS FIXED:
-  1. Case mismatch: BacktestForm saves strike_criteria="premium" (lowercase).
-     app.py checks == "premium" (lowercase). But validate_params was only
-     accepting "Premium" (capital). Fixed: VALID_CRITERIA uses lowercase
-     "premium" to match what app.py expects, and the system prompt example
-     also uses lowercase "premium".
-
-  2. Missing premium field: When strike_criteria is "premium", app.py also
-     needs the "premium" integer field (e.g. 250). validate_params never
-     passed it through. Fixed: premium is now validated and included.
-
-  3. build_context_block didn't include the premium value for saved strategies,
-     so the AI couldn't copy it into suggested_params. Fixed.
-
-  4. Spurious run/suggest card on "tell me about" queries: the AI was returning
-     suggested_params even for informational replies. Fixed by clarifying in
-     RULE 2 that suggested_params is ONLY set for actual run/execute intent,
-     not for describe/tell me about queries.
-"""
-
 import os, json, re
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required
@@ -83,9 +60,12 @@ For RUN intent — ALL fields required:
   target_in_pct        : number 1-100
   quantity             : integer 1-100
   indicators           : array of "rsi" | "bullish_n_bearish_engulfing"
+  trailing_sl_enabled  : boolean (true/false) — whether trailing SL is active
+  trailing_sl_pct      : number 0.1-100 — trail trigger: move SL when price rises by this %
+  move_pct             : number 0.1-100 — how much to shift SL and Target on each trail step
 
 IMPORTANT: When strike_criteria is "premium", you MUST also include the premium integer value.
-Example: "strike_criteria": "premium", "premium": 250
+IMPORTANT: Include trailing_sl_enabled, trailing_sl_pct, move_pct in RUN intent params only if the strategy uses them. For OPTIMIZATION, only include them if you are specifically suggesting a trailing SL change.
 
 For OPTIMIZATION — include ONLY changed fields.
 
@@ -129,7 +109,8 @@ STRICT OUTPUT RULES:
 - Keep reply under 150 words
 - Use Rs. for money amounts
 - suggested_params must contain ONLY the fields you want to change (e.g. {"stop_loss_in_pct": 5})
-- If no specific suggestion, set suggested_params to null
+- If no specific change, return null
+- You may suggest enabling trailing_sl_enabled with trailing_sl_pct and move_pct if drawdown is high
 
 EXAMPLE OUTPUT:
 {"reply": "Your strategy shows a **72% win rate** which is strong.\\n\\n• **Profit Factor 3.88** is excellent\\n• **Max Drawdown Rs.12195** is moderate — consider tightening SL\\n• Only 11 trades in the period, small sample size\\n\\nI suggest reducing SL to **5%** to cut the max drawdown. Want to test it?", "suggested_params": {"stop_loss_in_pct": 5}}
@@ -239,9 +220,28 @@ def validate_params(params: dict) -> dict | None:
         except (ValueError, TypeError):
             pass
 
+    # for field in ("entry_start_time", "entry_end_time", "exit_time"):
+    #     if isinstance(params.get(field), str) and re.match(r"^\d{2}:\d{2}$", params[field]):
+    #         clean[field] = params[field]
+
+    # return clean if clean else None
+
     for field in ("entry_start_time", "entry_end_time", "exit_time"):
         if isinstance(params.get(field), str) and re.match(r"^\d{2}:\d{2}$", params[field]):
             clean[field] = params[field]
+
+    # Trailing SL fields
+    if "trailing_sl_enabled" in params:
+        clean["trailing_sl_enabled"] = bool(params["trailing_sl_enabled"])
+
+    for field in ("trailing_sl_pct", "move_pct"):
+        if field in params:
+            try:
+                val = float(params[field])
+                if 0 < val <= 100:
+                    clean[field] = round(val, 2)
+            except (ValueError, TypeError):
+                pass
 
     return clean if clean else None
 
@@ -259,8 +259,14 @@ def build_context_block(form: dict, results_summary: dict, saved_strategies: lis
             lines.append(f"Strike: {strike} (premium={premium_val})  SL: {form.get('stop_loss_in_pct')}%  Target: {form.get('target_in_pct')}%  Lots: {form.get('quantity')}")
         else:
             lines.append(f"Strike: {strike}  SL: {form.get('stop_loss_in_pct')}%  Target: {form.get('target_in_pct')}%  Lots: {form.get('quantity')}")
+        # inds = form.get("indicators") or []
+        # lines.append(f"Indicators: {', '.join(inds) if inds else 'None'}")
         inds = form.get("indicators") or []
         lines.append(f"Indicators: {', '.join(inds) if inds else 'None'}")
+        if form.get("trailing_sl_enabled"):
+            lines.append(f"Trailing SL: enabled  Trail={form.get('trailing_sl_pct')}%  MoveBy={form.get('move_pct')}%")
+        else:
+            lines.append("Trailing SL: disabled")
 
     if results_summary:
         r = results_summary
@@ -280,13 +286,22 @@ def build_context_block(form: dict, results_summary: dict, saved_strategies: lis
             strike = f.get("strike_criteria", "ATM")
             premium_val = f.get("premium")
             strike_str = f"{strike} (premium={premium_val})" if str(strike).lower() == "premium" and premium_val else strike
+            # lines.append(
+            #     f'Strategy "{name}": Index={f.get("index")} Interval={f.get("interval")} '
+            #     f'Dates={f.get("start_date")}-{f.get("end_date")} '
+            #     f'Entry={f.get("entry_start_time")}-{f.get("entry_end_time")} Exit={f.get("exit_time")} '
+            #     f'Strike={strike_str} SL={f.get("stop_loss_in_pct")}% '
+            #     f'Target={f.get("target_in_pct")}% Lots={f.get("quantity")} '
+            #     f'Indicators={", ".join(inds) if inds else "None"}'
+            # )
+            tsl = f"  TrailSL={f.get('trailing_sl_pct')}%/Move={f.get('move_pct')}%" if f.get("trailing_sl_enabled") else ""
             lines.append(
                 f'Strategy "{name}": Index={f.get("index")} Interval={f.get("interval")} '
                 f'Dates={f.get("start_date")}-{f.get("end_date")} '
                 f'Entry={f.get("entry_start_time")}-{f.get("entry_end_time")} Exit={f.get("exit_time")} '
                 f'Strike={strike_str} SL={f.get("stop_loss_in_pct")}% '
                 f'Target={f.get("target_in_pct")}% Lots={f.get("quantity")} '
-                f'Indicators={", ".join(inds) if inds else "None"}'
+                f'Indicators={", ".join(inds) if inds else "None"}{tsl}'
             )
     return "\n".join(lines)
 

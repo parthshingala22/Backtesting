@@ -8,6 +8,14 @@ import {
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Tooltip, Legend);
 
+// const FIELD_LABELS = {
+//   index: "Index", interval: "Interval",
+//   start_date: "Start Date", end_date: "End Date",
+//   entry_start_time: "Entry Start", entry_end_time: "Entry End",
+//   exit_time: "Exit Time", strike_criteria: "Strike",
+//   stop_loss_in_pct: "Stop Loss", target_in_pct: "Target",
+//   quantity: "Lots", indicators: "Indicators",
+// };
 const FIELD_LABELS = {
   index: "Index", interval: "Interval",
   start_date: "Start Date", end_date: "End Date",
@@ -15,10 +23,25 @@ const FIELD_LABELS = {
   exit_time: "Exit Time", strike_criteria: "Strike",
   stop_loss_in_pct: "Stop Loss", target_in_pct: "Target",
   quantity: "Lots", indicators: "Indicators",
+  trailing_sl_enabled: "Trailing SL",
+  trailing_sl_pct: "Trail Trigger",
+  move_pct: "Move By",
 };
 
+// function fmtVal(key, val) {
+//   if (key === "stop_loss_in_pct" || key === "target_in_pct") return `${val}%`;
+//   if (key === "indicators") return Array.isArray(val) && val.length ? val.join(", ") : "None";
+//   if (key === "start_date" || key === "end_date") {
+//     const s = String(val);
+//     return `20${s.slice(0, 2)}-${s.slice(2, 4)}-${s.slice(4, 6)}`;
+//   }
+//   return String(val);
+// }
+
 function fmtVal(key, val) {
-  if (key === "stop_loss_in_pct" || key === "target_in_pct") return `${val}%`;
+  if (key === "stop_loss_in_pct" || key === "target_in_pct" ||
+    key === "trailing_sl_pct" || key === "move_pct") return `${val}%`;
+  if (key === "trailing_sl_enabled") return val ? "Enabled" : "Disabled";
   if (key === "indicators") return Array.isArray(val) && val.length ? val.join(", ") : "None";
   if (key === "start_date" || key === "end_date") {
     const s = String(val);
@@ -50,18 +73,35 @@ function RichText({ content }) {
 
 
 function RunCard({ params, onRun, onDecline, answered, running }) {
+  // const entries = Object.entries(params).filter(([k, v]) => {
+
+  //   if (FIELD_LABELS[k]) return true;
+
+  //   if (k === "premium" && v !== null && v !== undefined && v !== 0) {
+  //     const sc = String(params.strike_criteria || "").toLowerCase();
+  //     return sc === "premium";
+  //   }
+  //   return false;
+  // });
   const entries = Object.entries(params).filter(([k, v]) => {
-    
-    if (FIELD_LABELS[k]) return true;
-    
-    if (k === "premium" && v !== null && v !== undefined && v !== 0) {
-      const sc = String(params.strike_criteria || "").toLowerCase();
-      return sc === "premium";
+    if (!FIELD_LABELS[k]) return false;
+    // Only show premium when strike is premium
+    if (k === "premium") {
+      return v !== null && v !== undefined && v !== 0 &&
+        String(params.strike_criteria || "").toLowerCase() === "premium";
     }
-    return false;
+    // Only show trailing SL sub-fields when trailing is enabled
+    if (k === "trailing_sl_pct" || k === "move_pct") {
+      return params.trailing_sl_enabled === true;
+    }
+    // Hide trailing_sl_enabled itself if it's false (no point showing "Disabled" in RunCard)
+    if (k === "trailing_sl_enabled") {
+      return v === true;
+    }
+    return true;
   });
 
-  
+
   const getLabel = (key) => key === "premium" ? "Premium" : (FIELD_LABELS[key] || key);
   const getVal = (key, val) => key === "premium" ? String(val) : fmtVal(key, val);
   return (
@@ -94,7 +134,7 @@ function RunCard({ params, onRun, onDecline, answered, running }) {
 }
 
 function SuggestionCard({ changes, baseForm, onConfirm, onDecline, answered, running }) {
-  
+
   const entries = Object.entries(changes);
 
   return (
@@ -299,13 +339,13 @@ function Chatbot({ isOpen, onClose, backtestResults, form }) {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
 
-  
-  const [runCardState, setRunCardState] = useState({}); 
-  const [suggestionState, setSuggestionState] = useState({}); 
-  const [saveCardStatus, setSaveCardStatus] = useState({}); 
+
+  const [runCardState, setRunCardState] = useState({});
+  const [suggestionState, setSuggestionState] = useState({});
+  const [saveCardStatus, setSaveCardStatus] = useState({});
   const [runningCard, setRunningCard] = useState(null);
 
-  
+
   const [lastRunParams, setLastRunParams] = useState(null);
 
   const [savedStrategies, setSavedStrategies] = useState([]);
@@ -366,7 +406,7 @@ function Chatbot({ isOpen, onClose, backtestResults, form }) {
       setMessages(prev => [...prev, {
         role: "assistant",
         content: data.reply || "Sorry, no response received.",
-        suggested_params: data.suggested_params || null, 
+        suggested_params: data.suggested_params || null,
         card_type: cardType,
         suggestion_base: cardType === "suggest" ? (lastRunParams || form) : null,
       }]);
@@ -387,13 +427,13 @@ function Chatbot({ isOpen, onClose, backtestResults, form }) {
 
     try {
       const payload = { ...fullParams };
-      delete payload.strike_mode;  
+      delete payload.strike_mode;
 
 
       if (payload.premium !== undefined && payload.premium !== null) {
         payload.premium = Number(payload.premium) || 0;
       } else if (String(payload.strike_criteria).toLowerCase() === "premium") {
-        
+
         payload.premium = 0;
       }
 
@@ -412,7 +452,7 @@ function Chatbot({ isOpen, onClose, backtestResults, form }) {
       const results = await res.json();
 
       setRunCardState(prev => ({ ...prev, [runCardMsgIndex]: "complete" }));
-      setLastRunParams(fullParams); 
+      setLastRunParams(fullParams);
 
       if (!results.length) {
         setMessages(prev => [...prev, {
@@ -469,7 +509,7 @@ function Chatbot({ isOpen, onClose, backtestResults, form }) {
     } catch { /* non-critical — analysis failure shouldn't break the backtest result */ }
   };
 
-  
+
   const handleRunCard = (msgIndex, fullParams) => {
     executeBacktest(fullParams, msgIndex);
   };
@@ -483,11 +523,11 @@ function Chatbot({ isOpen, onClose, backtestResults, form }) {
     }]);
   };
 
-  
+
   const handleConfirmSuggestion = (msgIndex, changes, baseForm) => {
     setSuggestionState(prev => ({ ...prev, [msgIndex]: "confirmed" }));
 
-    
+
     const mergedParams = { ...(baseForm || form || {}), ...changes };
 
 
@@ -496,11 +536,11 @@ function Chatbot({ isOpen, onClose, backtestResults, form }) {
       mergedParams.premium = null;
     }
 
-    
+
     setMessages(prev => [...prev, {
       role: "assistant",
       content: "Here are the optimized parameters ready to run:",
-      suggested_params: mergedParams,   
+      suggested_params: mergedParams,
       card_type: "run",
       suggestion_base: null,
     }]);
